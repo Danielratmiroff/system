@@ -4,31 +4,51 @@
   become: true
   gather_facts: false
 
-  tasks:  
+  tasks:
     - name: Updating apt cache
       apt:
+        upgrade: yes
         update_cache: yes
     
-    - name: Installing packages from Ubuntu repository
+    - name: Check if nala is installed
+      stat:
+        path: /usr/bin/nala
+      register: nala_installed
+
+    - name: Install nala to manage package installation
       package:
-        name: "{{ item }}"
+        name: nala
         state: present
+      when: nala_installed.stat.exists == False
+    
+    - name: Action needed to completetly configure Nala
+      become: false
+      debug:
+        msg: "Run: 'nala fetch' to set up Nala's mirrors."
+      when: nala_installed.stat.exists == False
+      
+    - name: Installing packages from Ubuntu repository using Nala
+      # package:
+      # name: "{{ item }}"
+      # state: present
+      command:
+        cmd: nala install {{ item }}
       loop:
         - curl
         - net-tools
-        - nala
         - unzip
         - bat
         - yamllint
+        - exa
 
         # Gnome configuration
         - gnome-tweaks
         - gnome-shell-extensions
 
-        # Dev stuff 
+        # Dev stuff
         - npm
         - nodejs
-        - git 
+        - git
 
         # Used by nvim
         - ripgrep
@@ -38,6 +58,7 @@
         - ninja-build
         - cmake
         - gettext
+      when: nala_installed.stat.exists == True
 
     - name: Installing multipass with Snap
       snap:
@@ -45,8 +66,3 @@
       loop:
         - vlc
         - multipass
-
-    - name: Action needed to completetly configure Nala
-      become: false
-      debug: 
-        msg: "Run: 'nala fetch' to set up Nala's mirrors."
