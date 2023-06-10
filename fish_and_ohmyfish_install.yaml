@@ -1,0 +1,54 @@
+---
+- name: Installing fish shell
+  hosts: localhost
+  become: true
+  vars:
+    fish: "/usr/bin/fish"
+    user: "daniel"
+    dotfile: "home/{{ user }}/dotfiles/fish"
+    dest: "home/{{ user }}/.config/fish"
+
+  tasks:  
+    - name: Installing fish package
+      package:
+        name: fish
+        state: present
+  
+    - name: Check fish installation
+      shell: "fish --version"
+      register: fish_version
+      failed_when: fish_version.rc != 0
+
+    - name: "Change login shell of user {{ user }} to {{ fish }}"
+      user:
+        name: "{{ user }}"
+        shell: "{{ fish }}"
+
+    # Oh My Fish
+    - name: Installing oh-my-fish
+      become: false
+      shell: "curl jttps://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install | fish"
+      
+    - name: Checking if dotfiles are available in {{ dotfile }}
+      become: false
+      stat:
+        path: "{{ dotfile }}"
+      register: dotfiles_available
+      failed_when: dotfiles_available.stat.exists == False
+
+    - name: "Configuring fish and omf dotfiles"
+      become: false
+      find:
+        paths: "{{ dotfile }}"
+        patterns: "*.fish"
+        file_type: file
+      register: fish_files
+
+    - name: "Copy all fish files to {{ dest }}"
+      become: false
+      file:
+        src: "{{ item.path }}"
+        dest: "{{ dest }}/{{ item.path | basename }}"
+        state: link
+        force: yes
+      loop: "{{ fish_files.files }}"

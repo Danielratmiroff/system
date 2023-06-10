@@ -1,0 +1,32 @@
+---
+- name: Installing Minikube
+  hosts: localhost
+  become: true
+  gather_facts: false
+  vars:
+    user: "daniel"
+    minik: "minikube-linux-amd64"
+    downloads: "/home/{{ user }}/Downloads/"
+
+  tasks:  
+    - name: Pulling minikube binary
+      get_url:
+        url: "https://storage.googleapis.com/minikube/releases/latest/{{ minik }}"
+        dest: "{{ downloads }}"
+        mode: 0755
+
+    - name: Installing binary
+      shell:
+        cmd: "install {{downloads}}{{ minik }} /usr/local/bin/minikube"
+
+    - name: Removing binary from downloads
+      shell:
+        cmd: "rm -rf {{ downloads }}{{ minik}}"
+
+    - name: Set default driver as Docker
+      shell:
+        cmd: "minikube config set driver docker"
+    
+    - name: Starting minikube
+      debug:
+        msg: "Start minikube by running: minikube start"

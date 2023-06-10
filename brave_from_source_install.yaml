@@ -1,0 +1,37 @@
+---
+- name: Installing Brave explorer from source
+  hosts: localhost
+  become: true
+  gather_facts: false
+
+  tasks:  
+    - name: Checking if curl is available
+      become: false
+      shell:
+        cmd: "curl --version"
+      register: curl_package
+      failed_when: curl_package.rc != 0
+    
+    - name: Installing curl
+      package:
+        name: curl
+        state: present
+
+    - name: Downloading keyrings from official Brave repository
+      shell:
+        cmd: "curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+
+    - name: Adding Brave repository
+      shell:
+        cmd: 'echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list'
+    
+    - name: Updating apt cache
+      apt:
+        update_cache: yes
+    
+    - name: Installing Brave browser
+      apt:
+        name: brave-browser
+        state: present
+      
+      

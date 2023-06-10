@@ -1,0 +1,52 @@
+---
+- name: Installing main packages on Ubuntu
+  hosts: localhost
+  become: true
+  gather_facts: false
+
+  tasks:  
+    - name: Updating apt cache
+      apt:
+        update_cache: yes
+    
+    - name: Installing packages from Ubuntu repository
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - curl
+        - net-tools
+        - nala
+        - unzip
+        - bat
+        - yamllint
+
+        # Gnome configuration
+        - gnome-tweaks
+        - gnome-shell-extensions
+
+        # Dev stuff 
+        - npm
+        - nodejs
+        - git 
+
+        # Used by nvim
+        - ripgrep
+        - fd-find
+
+        # Build from source
+        - ninja-build
+        - cmake
+        - gettext
+
+    - name: Installing multipass with Snap
+      snap:
+        name: "{{ item }}"
+      loop:
+        - vlc
+        - multipass
+
+    - name: Action needed to completetly configure Nala
+      become: false
+      debug: 
+        msg: "Run: 'nala fetch' to set up Nala's mirrors."
