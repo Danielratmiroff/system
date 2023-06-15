@@ -1,0 +1,22 @@
+---
+- name: Scheduling CronJob to update dotfiles repository
+  hosts: localhost
+  gather_facts: true
+  vars:
+    minute: "30"
+    hour: "10"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+  tasks:
+    - name: "Schedule at: Weekdays: {{ weekday }}, Time: {{ hour }}:{{ minute }}}"
+      cron:
+        name: "dotfiles_update"
+        state: present
+        minute: "{{ minute }}"
+        hour: "{{ hour }}"
+        day: "{{ day }}"
+        month: "{{ month }}"
+        weekday: "{{ weekday }}"
+        job: "cd {{ ansible_env.HOME }}/dotfiles && git pull origin master && git add .&& git commit -m 'daily update' && git push origin master"

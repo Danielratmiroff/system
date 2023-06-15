@@ -1,0 +1,12 @@
+---
+- name: Install bitwarden using Snap
+  hosts: localhost
+  become: true
+  gather_facts: false
+ 
+  tasks:
+  - name: Installing...
+    snap:
+      name: bitwarden
+      state: present
+
