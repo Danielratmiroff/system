@@ -1,7 +1,7 @@
 #! /bin/bash
 set -x
 
-export GIT_SSH_COMMAND="ssh -i /home/daniel/.ssh/github_rsa.pub"
+export SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
 
 # Date in format Day-Month-Year
 date=$(date +"%Y-%m-%d %T")
