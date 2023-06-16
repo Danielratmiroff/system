@@ -8,8 +8,10 @@ date=$(date +"%Y-%m-%d %T")
 
 # Commit message
 message="daily update"
+folder="$1"
 
-cd /home/daniel/ansible/
+cd $1
 git add .
 git commit -m "${message}"
 git push -u origin master
+exit 0
