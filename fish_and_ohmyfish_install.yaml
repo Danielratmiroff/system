@@ -1,0 +1,55 @@
+---
+- name: Installing fish shell
+  hosts: localhost
+  vars:
+    fish: "/usr/bin/fish"
+    dotfile: "{{ ansible_env.HOME }}/dotfiles/fish"
+    dest: "{{ ansible_env.HOME }}/.config/fish"
+
+  tasks:
+    - name: Installing fish package
+      become: true
+      package:
+        name: fish
+        state: present
+
+    - name: Check fish installation
+      shell: "fish --version"
+      register: fish_version
+      failed_when: fish_version.rc != 0
+
+    - name: "Change login shell of user {{ ansible_env.USER }} to {{ fish }}"
+      become: true
+      user:
+        name: "{{ ansible_env.USER }}"
+        shell: "{{ fish }}"
+
+    # Oh My Fish
+    - name: Installing oh-my-fish
+      get_url:
+        url: https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install
+        dest: /tmp/omf_install
+        mode: 0755
+      when: fish_version.rc == 0
+
+    - name: Checking if dotfiles are available in {{ dotfile }}
+      stat:
+        path: "{{ dotfile }}"
+      register: dotfiles_available
+
+    - name: "Configuring fish and omf dotfiles"
+      find:
+        paths: "{{ dotfile }}"
+        patterns: "*.fish"
+        file_type: file
+      register: fish_files
+      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir
+
+    - name: "Copy all fish files to {{ dest }}"
+      file:
+        src: "{{ item.path }}"
+        dest: "{{ dest }}/{{ item.path | basename }}"
+        state: link
+        force: yes
+      loop: "{{ fish_files.files }}"
+      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir

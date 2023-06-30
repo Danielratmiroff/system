@@ -1,0 +1,24 @@
+---
+- name: Installing Lazyvim
+  hosts: localhost
+  vars:
+    config_dest: "{{ ansible_env.HOME }}/.config/nvim"
+    temp_folder: "/tmp/lazyvim"
+    repo: "https://github.com/LazyVim/starter"
+
+  tasks:  
+    - name: Downloading lazyvim
+      git:
+        repo: "{{ repo }}"
+        dest: "{{ temp_folder }}"
+        accept_hostkey: true
+
+    - name: Copying lazyvim to "{{ config_dest }}"
+      become: true
+      copy:
+        src: "{{ temp_folder }}/"
+        dest: "{{ config_dest }}"
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
+        force: yes
+        mode: 0744

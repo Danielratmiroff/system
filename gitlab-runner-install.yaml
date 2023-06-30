@@ -1,0 +1,54 @@
+---
+- name: Install and register Gitlab runner
+  hosts: localhost
+  become: yes
+  become_method: sudo
+  vars:
+    # Find this info in: Gitlab -> Settings -> CI/CD -> Runners -> Expand
+    - coordinator_url: "https://git.sdui.de/"
+    - registration_token: "GR1348941uwm6ucHTSzs-wygBgegy"
+    - description: "gitlab-runner"
+    - executor: "docker"
+    - architecture: "amd64"
+
+  tasks:
+    - name: Check if gitlab runner is installed
+      stat:
+        path: /usr/bin/gitlab-runner
+      register: gitlab_runner_installed
+
+    - name: Download gitlab runner (~450MB)
+      get_url:
+        url: "https://gitlab-runner-downloads.s3.amazonaws.com/latest/deb/gitlab-runner_{{ architecture }}.deb"
+        dest: /tmp/gitlab-runner_amd64.deb
+      when: gitlab_runner_installed.stat.exists == false
+
+    - name: Install gitlab runner
+      apt:
+        deb: /tmp/gitlab-runner_amd64.deb
+        state: present
+      when: gitlab_runner_installed.stat.exists == false
+
+    - name: Register our runner
+      shell: gitlab-runner register \
+        --non-interactive \
+        --url "{{ coordinator_url }}" \
+        --registration-token "{{ registration_token }}" \
+        --executor "{{ executor }}" \
+        --docker-image "docker:stable" \
+        --description "{{ description }}" \
+        --tag-list "{{ executor }}" \
+        --run-untagged="true" \
+        --locked="false" \
+        --access-level="not_protected"
+
+    - name: Add gitlab-runner user to docker group
+      user:
+        name: gitlab-runner
+        groups: docker
+        append: yes
+
+    - name: Restart docker service
+      service:
+        name: docker
+        state: restarted

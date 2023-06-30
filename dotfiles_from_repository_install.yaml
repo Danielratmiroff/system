@@ -1,0 +1,24 @@
+---
+# Install dotfiles 
+- name: Configuring dotfiles
+  hosts: localhost
+  vars:
+    user: "daniel"
+    repo: "git@github.com:Danielratmiroff/dotfiles.git"
+    dest: "/home/{{ user }}/dotfiles"
+    ssh_key: "/home/{{ user }}/.ssh/github_dan"
+
+  vars_prompt:
+    - name: user_agreed
+      prompt: "Installing in '{{ dest }}' - Do you want to proceed? (y/n)"
+      private: no
+
+  tasks:  
+    - name: Downloading your dotfiles using key {{ ssh_key }}
+      git:
+        repo: "{{ repo }}"
+        dest: "{{ dest }}"
+        key_file: "{{ ssh_key }}"
+        accept_hostkey: yes
+      when: user_agreed == 'y'
+      
