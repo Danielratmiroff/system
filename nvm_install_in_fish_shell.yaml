@@ -3,8 +3,6 @@
 - name: Installing nvm in fish shell
   hosts: localhost
   gather_facts: no
-  vars:
-    user: "daniel"
 
   tasks:  
     - name: Installing NVM itself
