@@ -9,7 +9,6 @@
       apt:
         upgrade: yes
         update_cache: yes
-
     - name: Check if nala is installed
       stat:
         path: /usr/bin/nala
