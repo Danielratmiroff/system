@@ -52,10 +52,10 @@
         - gettext
       when: nala_installed.stat.exists == True
 
-    - name: Installing multipass with Snap
+    - name: Installing Snap packages
       snap:
         name: "{{ item }}"
       loop:
         - vlc
         - multipass
-      
+        - lxd
