@@ -1,0 +1,43 @@
+---
+- name: Creating multipass configuration file for ssh access
+  hosts: localhost
+  vars:
+    # Paths 
+    - ssh_key_path: "{{ ansible_env.HOME }}/.ssh/multipass-ssh-key"
+    - ssh_key_path_pub: "{{ ansible_env.HOME }}/.ssh/multipass-ssh-key.pub"
+    - config_path: "{{ ansible_env.HOME }}/automation/config/"
+    - config_file: "{{ config_path }}ssh-cloud-init.yaml"
+
+  tasks:  
+    - name: Check if ssh key exists
+      stat:
+        path: "{{ ssh_key_path }}"
+      register: ssh_key_stat
+
+    - name: Create ssh key
+      shell: ssh-keygen -t rsa -C "{{ ansible_env.USER }}" -f "{{ ssh_key_path }}"
+      when: ssh_key_stat.stat.exists == False
+    
+    - name: Check if multipass configuration exists
+      stat:
+        path: "{{ config_file }}"
+      register: multipass_config_stat
+
+    - name: Create multipass configuration directory
+      file:
+        path: "{{ config_path }}"
+        state: directory
+      when: multipass_config_stat.stat.exists == False
+
+    - name: Create multipass configuration
+      copy:
+        force: yes
+        content: |
+          users:
+          - default
+          - name: "{{ ansible_env.USER }}"
+            sudo: ALL=(ALL) NOPASSWD:ALL
+          ssh_authorized_keys:
+            - "{{ lookup('file', ssh_key_path_pub) }}"
+        dest: "{{ config_file }}"
+      when: multipass_config_stat.stat.exists == False

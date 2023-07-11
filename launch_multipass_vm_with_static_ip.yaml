@@ -1,0 +1,73 @@
+---
+- name: Creating multipass VM with static IP
+  hosts: localhost
+  vars:
+    # VM
+    - name: "multipass-vm"
+    - cpus: 2
+    - memory: 2G
+    - disk: 10G
+
+    # Network
+    - bridge_name: "localbr"
+    - mac: "52:54:00:4b:ab:cd"
+    - ip: "10.13.31.1/24"
+
+    # Paths 
+    - ssh_key_path: "{{ ansible_env.HOME }}/.ssh/multipass-ssh-key"
+    - ssh_key_path_pub: "{{ ansible_env.HOME }}/.ssh/multipass-ssh-key.pub"
+    - config_path: "{{ ansible_env.HOME }}/automation/config/"
+    - config_file: "{{ config_path }}ssh-cloud-init.yaml"
+
+  tasks:  
+    - name: "Creating a VM with config:"
+      debug:
+        msg: "name: {{ name }}, cpus: {{ cpus }}, memory: {{ memory }}, disk: {{ disk }}"
+
+    - name: Check if bridge network exists
+      command: "nmcli connection show | grep {{ bridge_name }}"
+      register: bridge_network
+
+    - name: "Creating a BRIDGE with config:"
+      debug:
+        msg: "name: {{ bridge_name }}, ip: {{ ip }}"
+
+    - name: Create a bridge network
+      command: "nmcli connection add type bridge con-name {{ bridge_name }} ifname {{ bridge_name }} ipv4.method manual ipv4.addresses {{ ip }}"
+      when: bridge_network.rc != 0
+
+    - name: Check if bridge network was created
+      command: "ip -c -br addr show dev {{ bridge_name }}"
+      register: bridge_network_created
+      failed_when: bridge_network_created.rc != 0
+      when: bridge_network.rc != 0
+
+    - name: "Create a multipass VM using network: {{ bridge_name }}, mac: {{ mac }}"
+      command: multipass launch -n {{ name }} --network name={{ bridge_name }},mode=manual,mac="{{ mac }}" -c {{ cpus }} -m {{ memory }} -d {{ disk }} --cloud-init {{ config_file }}
+      register: vm_created
+      failed_when: vm_created.rc != 0
+
+    - name: Configure network interface in our VM {{ name }}
+      shell: |
+        multipass exec {{ name }} -- sudo bash -c 'cat << EOF > /etc/netplan/10-custom.yaml
+        network:
+            version: 2
+            ethernets:
+                extra0:
+                    dhcp4: no
+                    match:
+                        macaddress: "52:54:00:4b:ab:cd"
+                    addresses: [10.13.31.13/24]
+        EOF'
+
+    - name: Apply network configuration
+      shell: multipass exec {{ name }} -- sudo bash -c 'netplan apply'
+
+    - name: Check our network configuration
+      command:
+        cmd: multipass info {{ name }} 
+      register: vm_info
+
+    - name: Print our network configuration
+      debug:
+        msg: vm_info.stdout_lines
