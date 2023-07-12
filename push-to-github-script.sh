@@ -1,6 +1,8 @@
 #! /bin/bash
 set -x
 
+# Script used by cronjobs to push to github automatically
+
 export SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
 
 # Date in format Day-Month-Year

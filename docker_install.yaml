@@ -1,51 +1,51 @@
 ---
 - name: Installing main packages on Ubuntu
-  hosts: localhost
+  hosts: all
   become: true
   gather_facts: true
   vars:
-    docker_url: https://download.docker.com/linux/ubuntu 
- 
+    docker_url: https://download.docker.com/linux/ubuntu
+
   tasks:
     - name: Install required system packages
       apt:
         name: "{{ item }}"
         state: present
-      loop: 
-      - "curl" 
-      - "ca-certificates"
-      - "gnupg"
-  
+      loop:
+        - "curl"
+        - "ca-certificates"
+        - "gnupg"
+
     - name: Add Docker GPG apt Key
       apt_key:
         url: "{{ docker_url }}/gpg"
         state: present
-  
+
     - name: Add Docker Repository
       apt_repository:
         repo: deb {{ docker_url }} bionic stable
         state: present
-  
-    - name: Update apt 
-      apt: 
-       update_cache: yes 
+
+    - name: Update apt
+      apt:
+        update_cache: yes
 
     - name: Ensure we install from Docker repo
       command:
         cmd: apt-cache policy docker-ce
 
     - name: Install docker packages
-      apt: 
+      apt:
         name: "{{ item }}"
         state: present
       loop:
-      - "docker-ce"
-      - "docker-ce-cli"
-      - "containerd.io"
-      - "docker-buildx-plugin"
+        - "docker-ce"
+        - "docker-ce-cli"
+        - "containerd.io"
+        - "docker-buildx-plugin"
 
     - name: "Set up user {{ ansible_env.USER }} to use docker"
-      user: 
+      user:
         name: "{{ ansible_env.USER }}"
         groups: docker
         append: yes

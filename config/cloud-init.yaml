@@ -1,6 +1,24 @@
+#cloud-config
+timezone: Europe/Berlin
+write_files:
+- path: /etc/netplan/99-custom.yaml
+  content: |
+    network:
+      ethernets:
+        extra0:
+            dhcp4: no
+            match:
+                macaddress: "52:54:00:4b:ab:cd"
+            addresses: [10.13.31.13/24]
+      version: 2
+
+runcmd:
+  - netplan apply
+  - apt update
+
 users:
-  - default
-  - name: vmuser
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYBRwWUQuDT0IgSVJsx0NFrp+tOO3pkimUxc9WdqDxdD7WNuqiiZudfij2qyYGAKRMjisdQFUyLKMfq50EDGQYX31QMxoRNzpLIseoMfZp491NVeITUTjfqm2YD+twZ+Hwbv8jyBKpBBjGuidp84ktjq2jcrvDzMfG0wd3kA8G3fkQzEXtN9yRD9EhmsfLvHVsDvezJSyQVK9EUyuikR2Z3L0JWLG656cqPQ64XjX3UV1APWR9m9yjVauSWUNOqYqV0KA+LH4PizTW0x2dkuHKFEpNSUtE69vPuh9IuVvBnbNM8I31m3Nzs7To3KB70txS15ZmIQ3nofkMwWEzVbuV vmuser
+- default
+- name: "daniel"
+  sudo: ALL=(ALL) NOPASSWD:ALL
+ssh_authorized_keys:
+  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCLX+jUwyqwjqVLz/c2Qywy0xCxrbucUnTJtlAAdy0TeisUzOOkICYugS8SpVHO9W5AcZEZ1C3lz00/PfFPOj67EQlrI3UjxdlF0802Pg0hKWnQ24NouWNv3VEF7JO/4EOGn6/Bb3eUfVXCFCYu1YV2eih7NO2mFbukdL/4xrrbfBRqOyINm5TOzZAUuodFuGrJZFvVjWU32bRzM73uHdslW06BtK/9Pbqy3puhBbTB3KPbt5IztEEuImlVSR+MMmsUjfWy4JngXWmQ5uPE69qGF7Ap1SuWObs2oNr18FYRv5sf2SHM0FiaJPoBvdONpYYa87ChD+ULaXKMZL9BEtyHTz2u3DvzjC6OMKsdCJTex4WFJ51d8aw0qKWcA8xYzPUf29+BsjG8zR67tLhz697WC++kllclTFS3T/qz3VboSr4pQtwV182vNu2yQwJ8WWEamSGjNFMvAYpOnjIK9l8mBAvMAkQKBn09tuQVeEJb4Ltt2IzT0bwNpEYTbeAws0E= daniel"
