@@ -1,6 +1,6 @@
 ---
 - name: Installing fish shell
-  hosts: localhost
+  hosts: all
   vars:
     fish: "/usr/bin/fish"
     dotfile: "{{ ansible_env.HOME }}/dotfiles/fish"

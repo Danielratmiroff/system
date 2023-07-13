@@ -1,12 +1,12 @@
 ---
 # Install dotfiles 
 - name: Configuring dotfiles
-  hosts: localhost
+  hosts: all
   vars:
     user: "daniel"
     repo: "git@github.com:Danielratmiroff/dotfiles.git"
-    dest: "/home/{{ user }}/dotfiles"
-    ssh_key: "/home/{{ user }}/.ssh/github_dan"
+    dest: "{{ ansible_env.USER }}/dotfiles"
+    ssh_key: "{{ ansible_env.USER }}/.ssh/github_daniel"
 
   vars_prompt:
     - name: user_agreed

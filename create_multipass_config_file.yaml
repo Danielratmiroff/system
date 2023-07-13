@@ -1,6 +1,6 @@
 ---
 - name: Creating multipass configuration file
-  hosts: localhost
+  hosts: all
   vars:
     # Paths
     - ssh_key_path: "{{ ansible_env.HOME }}/.ssh/multipass-ssh-key"

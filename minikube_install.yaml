@@ -1,7 +1,8 @@
 ---
 - name: Installing Minikube
-  hosts: localhost
+  hosts: all
   become: true
+  become_method: sudo
   gather_facts: false
   vars:
     executable: "/usr/local/bin/minikube"

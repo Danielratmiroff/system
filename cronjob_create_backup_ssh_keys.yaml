@@ -1,6 +1,6 @@
 ---
 - name: Scheduling CronJob to create backup ssh keys
-  hosts: localhost
+  hosts: all
   vars:
     # Schedule
     minute: "30"

@@ -1,6 +1,6 @@
 ---
 - name: Creating local bridge for multipass VMs 
-  hosts: localhost
+  hosts: all
   vars:
     # Network
     - bridge_name: "localbr"

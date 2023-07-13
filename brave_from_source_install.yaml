@@ -1,7 +1,8 @@
 ---
 - name: Installing Brave explorer from source
-  hosts: localhost
+  hosts: all
   become: true
+  become_method: sudo
   gather_facts: false
 
   tasks:  

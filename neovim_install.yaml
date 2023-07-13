@@ -1,7 +1,6 @@
 ---
 - name: Installing neovim and configuring it
-  hosts: localhost
-  gather_facts: true
+  hosts: all
   vars:
     repo: "https://github.com/neovim/neovim"
 

@@ -1,6 +1,6 @@
 ---
 - name: Installing Copilot for Neovim
-  hosts: localhost
+  hosts: all
   vars:
     config_dest: "{{ ansible_env.HOME }}/.config/nvim/pack/github/start/copilot.vim"
     temp_folder: "/tmp/lazyvim"

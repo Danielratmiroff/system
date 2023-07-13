@@ -1,6 +1,7 @@
 ---
 - name: Installing main packages on Ubuntu
-  hosts: localhost
+  hosts: all
+  become_method: sudo
   become: true
   gather_facts: false
 

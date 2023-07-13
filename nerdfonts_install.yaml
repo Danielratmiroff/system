@@ -1,7 +1,6 @@
 ---
 - name: Installing nerdfonts into ~/.fonts
-  hosts: localhost
-  become: false
+  hosts: all
   vars:
     font_dir: "{{ ansible_env.HOME }}/.fonts"
 

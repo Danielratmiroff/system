@@ -1,7 +1,7 @@
 
 ---
 - name: Installing nvm in fish shell
-  hosts: localhost
+  hosts: all
   gather_facts: no
 
   tasks:  

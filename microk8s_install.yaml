@@ -1,7 +1,6 @@
 ---
 - name: Installing microk8s (Kubernetes) 
-  hosts: localhost
-  become: false
+  hosts: all
   vars:
     user: "daniel"
 

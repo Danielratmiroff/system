@@ -1,7 +1,8 @@
 ---
 - name: Create android rules for all devices to allow adb access
-  hosts: localhost
+  hosts: all
   become: yes
+  become_method: sudo
   gather_facts: no
   vars:
     - android_rules_file: /etc/udev/rules.d/51-android.rules
