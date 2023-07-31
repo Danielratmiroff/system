@@ -33,6 +33,7 @@
         - yamllint
         - exa
         - nala
+        - xdotool
 
         # Gnome configuration
         - gnome-tweaks
