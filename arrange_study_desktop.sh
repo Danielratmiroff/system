@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Arrange windows on the desktop for studying
-URLS=("https://chat.openai.com/?model=gpt-4" "https://www.youtube.com/watch?v=nMfPqeZjc2c&t=10622s&ab_channel=RelaxingWhiteNoise")
+URLS=("https://www.youtube.com/watch?v=nMfPqeZjc2c&t=10622s&ab_channel=RelaxingWhiteNoise" "https://chat.openai.com/?model=gpt-4")
 
 UDEMY_URL="https://www.udemy.com/home/my-courses/learning/"
 NOTION_URL="https://www.notion.so/4fff1b5312b846539a7f6b9a4994fb99?v=4bd5a93b35ae4289afc621dc5105d9e9"
