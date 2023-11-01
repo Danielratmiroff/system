@@ -30,13 +30,6 @@ open_helper_browser() {
 	xdotool keydown Super key Up keyup Super
 }
 
-open_helper_browser() {
-	for url in "${URLS[@]}"; do
-		brave-browser --new-tab "$url" &
-		sleep 1
-	done
-}
-
 open_helper_browser
 sleep 1
 

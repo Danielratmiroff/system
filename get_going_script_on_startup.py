@@ -1,7 +1,8 @@
 
 # This script will run on bootup. 
 # To run this script on bootup, add the following line to your applications startups (Ubuntu: Startup Applications)
-# gnome-terminal -- python3 /home/username/path/to/script/get_going_script_on_startup.py
+# gnome-terminal -- fish -c "python3 /home/daniel/automation/get_going_script_on_startup.py; exec fish"
+
 
 import subprocess
 import requests
