@@ -24,10 +24,6 @@ open_helper_browser() {
 		brave-browser --new-tab "$url" &
 		sleep 1
 	done
-
-	move_to_secondary_screen
-	sleep 1
-	xdotool keydown Super key Up keyup Super
 }
 
 open_helper_browser
