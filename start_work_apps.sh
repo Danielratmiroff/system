@@ -24,10 +24,17 @@ open_helper_browser() {
 		brave-browser --new-tab "$url" &
 		sleep 1
 	done
+
+	sleep 3
+	move_to_secondary_screen
+	sleep 1
+	xdotool keydown Super key Up keyup Super
 }
+# Kill brave as we need to focus
+pkill brave
+sleep 1
 
 open_helper_browser
-sleep 1
 
 # Start apps
 $MESSAGER_APP_PATH
