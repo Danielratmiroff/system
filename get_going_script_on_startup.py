@@ -17,6 +17,7 @@ print("First, what do you want to do today?")
 print("0. Nothing")
 print("1. Work")
 print("2. Study")
+print("3. Language")
 
 choice = input("Enter your choice: ")
 
@@ -34,8 +35,12 @@ elif (choice == 2):
     print("Let's study!")
     print("I'm gonna open your study applications for you.")
     subprocess.run(['fish', '-c', 'study start'])
+elif (choice == 3):
+    print("Let's learn german!")
+    print("I'm gonna open your language learning applications for you.")
+    subprocess.run(['fish', '-c', 'lang start'])
 else:
-    print("All right! I'm gonna leave you alone then.")
+    print("All right! I'm gonna let you be wild on your own :)")
     exit()
 
 url = "https://api.quotable.io/random"
