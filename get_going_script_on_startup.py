@@ -40,7 +40,7 @@ elif (choice == 3):
     print("I'm gonna open your language learning applications for you.")
     subprocess.run(['fish', '-c', 'lang start'])
 else:
-    print("All right! I'm gonna let you be wild on your own :)")
+    print("All right! I'm gonna let you be wild by your own :)")
     exit()
 
 url = "https://api.quotable.io/random"
