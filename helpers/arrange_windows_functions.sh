@@ -27,12 +27,11 @@ maximize_window() {
     xdotool key Super+Up; xdotool key Escape
 }
 
-# Other stuff
-NO_OUTPUT=</dev/null &>/dev/null &
+# Helper function to switch desktop
+move_to_desktop_on_right(){
+	xdotool key Alt+Down;
+}
 
-open_helper_browser() {
-	for url in "${URLS[@]}"; do
-		brave-browser --new-tab "$url" $NO_OUTPUT
-		sleep 1
-	done
+move_to_desktop_on_left(){
+	xdotool key Alt+Up;
 }

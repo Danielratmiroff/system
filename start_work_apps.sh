@@ -1,37 +1,24 @@
 #!/bin/bash
 
-# Arrange windows on the desktop for working
+# This script is used to start work-related applications 
 
+# The following applications are started:
+# - Brave 
+# - Slack
+
+source ~/automation/helpers/utils.sh
 source ~/automation/helpers/arrange_windows_functions.sh
 
-MUSIC_URL="https://www.youtube.com/watch?v=nMfPqeZjc2c&t=10622s&ab_channel=RelaxingWhiteNoise"
-OPENAI_URL="https://chat.openai.com/?model=gpt-4"
-# create array of urls
-URLS=($MUSIC_URL $OPENAI_URL)
-
-MESSAGER_APP_PATH="/snap/bin/slack"
-NOTES_APP_PATH="/snap/bin/simplenote"
-
-pkill brave
-sleep 2
-
-# Start browser
-open_helper_browser
-sleep 2
-move_right_monitor
-sleep 1
-maximize_window
-
 # Start apps
-$MESSAGER_APP_PATH $NO_OUTPUT
-sleep 3
-move_left_monitor
-sleep 1
-move_sideways_right
-sleep 1
+brave-browser $NO_OUTPUT
+~/snap/bin/slack $NO_OUTPUT
 
-$NOTES_APP_PATH $NO_OUTPUT
+# Start apps on second desktop
+sleep 2
+move_to_desktop_on_right
+fish -c 'android_studio start' & $NO_OUTPUT
+
+# Return to desktop
 sleep 3
-move_left_monitor
-sleep 1
-move_sideways_left
+move_to_desktop_on_left
+

@@ -1,47 +1,35 @@
-
-# This script will run on bootup. 
-# To run this script on bootup, add the following line to your applications startups (Ubuntu: Startup Applications)
-# gnome-terminal -- fish -c "python3 /home/daniel/automation/get_going_script_on_startup.py; exec fish"
-
-
 import subprocess
 import requests
+import time
+import datetime
 
 # Global variables
-script_paths="/home/daniel/automation/"
+script_paths = "/home/daniel/automation/"
 
 print("--------------------------------------------")
-print("Hello my dear Daniel, I'm here for you and I'm gonna get you going!")
+print("Hello my dear Daniel, I'm here for you\n")
 
-print("First, what do you want to do today?")
-print("0. Nothing")
-print("1. Work")
-print("2. Study")
-print("3. Language")
+# Check if today is a weekend
+today = datetime.datetime.today().weekday()
+if today >= 5:  # 5 = Saturday, 6 = Sunday
+    print("It's weekend! Wanna work? (yes/y) default is no")
+    choice = input("Your choice: ").strip().lower()
+    if choice not in ['yes', 'y']:
+        print("Enjoy your weekend! Love you!")
+        exit()
 
-choice = input("Enter your choice: ")
+print("Let's work!")
+print("I'm gonna open your work applications for you.")
 
-# check for valid number input
-while not choice.isdigit() or int(choice) < 0 or int(choice) > 3:
-    choice = input("Enter a valid choice: ")
+# Show a loading timer of 5 seconds
+timer = 15
+print(f"Starting in {timer} seconds...")
+for i in range(timer, 0, -1):
+    print(f"{'*' * (6 - i)} {i}...")
+    time.sleep(1)
 
-choice = int(choice)
-
-if (choice == 1):
-    print("Let's work!")
-    print("I'm gonna open your work applications for you.")
-    subprocess.run(['fish', '-c', 'work start'])
-elif (choice == 2):
-    print("Let's study!")
-    print("I'm gonna open your study applications for you.")
-    subprocess.run(['fish', '-c', 'study start'])
-elif (choice == 3):
-    print("Let's learn german!")
-    print("I'm gonna open your language learning applications for you.")
-    subprocess.run(['fish', '-c', 'lang start'])
-else:
-    print("All right! I'm gonna let you be wild by your own :)")
-    exit()
+print("Starting work...")
+subprocess.run(['fish', '-c', 'work start'])
 
 url = "https://api.quotable.io/random"
 response = requests.get(url)
