@@ -5,7 +5,7 @@ set -x
 
 eval "$(ssh-agent -s)"
 
-ssh-add ~/.ssh/github_cron.pub
+ssh-add ~/.ssh/github_cron
 
 export SSH_AUTH_SOCK
 
