@@ -5,7 +5,7 @@ set -x
 
 eval "$(ssh-agent -s)"
 
-ssh-add ~/.ssh/github_cronjob.pub
+ssh-add ~/.ssh/github_cron.pub
 
 # Date in format Day-Month-Year
 date=$(date +"%Y-%m-%d %T")
