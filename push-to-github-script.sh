@@ -7,6 +7,8 @@ eval "$(ssh-agent -s)"
 
 ssh-add ~/.ssh/github_cron.pub
 
+export SSH_AUTH_SOCK
+
 # Date in format Day-Month-Year
 date=$(date +"%Y-%m-%d %T")
 
