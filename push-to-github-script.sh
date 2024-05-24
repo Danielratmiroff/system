@@ -20,7 +20,6 @@ git add .
 git commit -m "${message}"
 git push -u origin master
 
-# Kill the ssh-agent
 kill $SSH_AGENT_PID
 
 exit 0
