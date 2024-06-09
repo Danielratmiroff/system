@@ -19,8 +19,9 @@
 
     - name: Download gitlab runner (~450MB)
       get_url:
-        url: "https://gitlab-runner-downloads.s3.amazonaws.com/latest/deb/gitlab-runner_{{ architecture }}.deb"
+        url: "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/deb/gitlab-runner_{{ architecture }}.deb"
         dest: /tmp/gitlab-runner_amd64.deb
+        mode: "0644"
       when: gitlab_runner_installed.stat.exists == false
 
     - name: Install gitlab runner

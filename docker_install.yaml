@@ -19,6 +19,7 @@
     - name: Add Docker GPG apt Key
       apt_key:
         url: "{{ docker_url }}/gpg"
+        validate_certs: no
         state: present
 
     - name: Add Docker Repository
@@ -57,5 +58,3 @@
         mode: 0666
         owner: root
         group: docker
-
-    
