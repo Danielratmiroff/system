@@ -1,0 +1,47 @@
+---
+- name: Install Ledger AppImage
+  hosts: localhost
+  become: yes
+  vars:
+    download_path: "{{ lookup('env', 'HOME') }}/Downloads/"
+    local_applications_path: "{{ lookup('env', 'HOME') }}/.local/share/applications/"
+
+  tasks:
+    - name: Check if Ledger AppImage exists in downloads folder
+      shell: "find {{ download_path }} -type f -name 'ledger*.AppImage'"
+      register: ledger_file
+
+    - name: Found Ledger AppImage
+      debug:
+        var: ledger_file
+
+    - name: Fail if Ledger AppImage is not found
+      fail:
+        msg: "Ledger AppImage not found."
+      when: ledger_file.stdout == ""
+
+    - name: Move Ledger AppImage to /usr/local/bin if found
+      copy:
+        src: "{{ ledger_file.stdout }}"
+        dest: "/usr/local/bin/ledger.AppImage"
+        mode: "0755"
+      when: ledger_file.stdout != ""
+
+    - name: Create local applications directory if it does not exist
+      file:
+        path: "{{ local_applications_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Create desktop entry for Ledger
+      copy:
+        dest: "{{ local_applications_path }}/ledger.desktop"
+        content: |
+          [Desktop Entry]
+          Name=Ledger
+          Exec=/usr/local/bin/ledger.AppImage
+          Icon="{{ lookup('env', 'HOME') }}/automation/assets/iconcursor.png"
+          Type=Application
+          Categories=Utility;
+          Terminal=false
+      when: ledger_file.stdout != ""
