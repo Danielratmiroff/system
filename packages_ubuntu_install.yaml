@@ -31,9 +31,10 @@
         - unzip
         - bat
         - yamllint
-        - exa
+        - eza
         - nala
         - xdotool
+        - yadm
 
         # Gnome configuration
         - gnome-tweaks
