@@ -35,6 +35,7 @@
         - nala
         - xdotool
         - yadm
+        - fzf
 
         # Gnome configuration
         - gnome-tweaks
