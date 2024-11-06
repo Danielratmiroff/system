@@ -7,41 +7,41 @@
     local_applications_path: "{{ lookup('env', 'HOME') }}/.local/share/applications/"
 
   tasks:
-  - name: Check if Cursor AppImage exists in downloads folder
-    shell: "find {{ cursor_download_path }} -type f -name 'cursor*.AppImage'"
-    register: cursor_file
+    - name: Check if Cursor AppImage exists in downloads folder
+      shell: "find {{ cursor_download_path }} -type f -name 'cursor*.AppImage'"
+      register: cursor_file
 
-  - name: Found Cursor AppImage
-    debug:
-      var: cursor_file.stdout
+    - name: Found Cursor AppImage
+      debug:
+        var: cursor_file.stdout
 
-  - name: Fail if Cursor AppImage is not found
-    fail:
-      msg: "Cursor AppImage not found. Please download it first from https://cursor.sh/"
-    when: cursor_file.stdout == ""
+    - name: Fail if Cursor AppImage is not found
+      fail:
+        msg: "Cursor AppImage not found. Please download it first from https://cursor.sh/"
+      when: cursor_file.stdout == ""
 
-  - name: Move Cursor AppImage to /usr/local/bin if found
-    copy:
-      src: "{{ cursor_file.stdout }}"
-      dest: "/usr/local/bin/cursor.AppImage"
-      mode: '0755'
-    when: cursor_file.stdout != ""
+    - name: Move Cursor AppImage to /usr/local/bin if found
+      copy:
+        src: "{{ cursor_file.stdout }}"
+        dest: "/usr/local/bin/cursor"
+        mode: "0755"
+      when: cursor_file.stdout != ""
 
-  - name: Create local applications directory if it does not exist
-    file:
-      path: "{{ local_applications_path }}"
-      state: directory
-      mode: '0755'
+    - name: Create local applications directory if it does not exist
+      file:
+        path: "{{ local_applications_path }}"
+        state: directory
+        mode: "0755"
 
-  - name: Create desktop entry for Cursor
-    copy:
-      dest: "{{ local_applications_path }}/cursor.desktop"
-      content: |
-        [Desktop Entry]
-        Name=Cursor
-        Exec=/usr/local/bin/cursor.AppImage
-        Icon="{{ lookup('env', 'HOME') }}/automation/assets/iconcursor.png"
-        Type=Application
-        Categories=Utility;
-        Terminal=false
-    when: cursor_file.stdout != ""
+    - name: Create desktop entry for Cursor
+      copy:
+        dest: "{{ local_applications_path }}/cursor.desktop"
+        content: |
+          [Desktop Entry]
+          Name=Cursor
+          Exec=/usr/local/bin/cursor
+          Icon="{{ lookup('env', 'HOME') }}/automation/assets/iconcursor.png"
+          Type=Application
+          Categories=Utility;
+          Terminal=false
+      when: cursor_file.stdout != ""
