@@ -27,6 +27,12 @@
         mode: "0755"
       when: cursor_file.stdout != ""
 
+    - name: Make Cursor AppImage executable
+      file:
+        path: "/usr/local/bin/cursor"
+        mode: "0755"
+      when: cursor_file.stdout != ""
+
     - name: Create local applications directory if it does not exist
       file:
         path: "{{ local_applications_path }}"
