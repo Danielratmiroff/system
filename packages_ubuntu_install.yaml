@@ -64,3 +64,6 @@
         - multipass
         - lxd
         - jump
+        - pinta
+        - snap
+        - localsend
