@@ -1,0 +1,41 @@
+---
+- name: Install Flameshot AppImage
+  hosts: localhost
+  gather_facts: true
+
+  vars:
+    appimage_name: "Flameshot"
+    desktop_entry: "{{ ansible_user_dir }}/.local/share/applications/flameshot.desktop"
+
+  tasks:
+    - name: Find AppImage files
+      find:
+        paths: "{{ ansible_env.HOME }}/Downloads"
+        patterns: "{{ appimage_name }}*"
+        file_type: file
+      register: appimage_files
+
+    - name: Ensure the AppImage is executable
+      become: true
+      file:
+        path: "{{ appimage_files.files[0].path }}"
+        mode: "0755"
+        state: file
+      register: appimage_executable
+
+    - name: Set the AppImage executable path
+      set_fact:
+        appimage_executable: "{{ appimage_files.files[0].path }}"
+
+    - name: Create desktop entry for Flameshot
+      become: true
+      copy:
+        dest: "{{ desktop_entry }}"
+        content: |
+          [Desktop Entry]
+          Name=Flameshot
+          Exec={{ appimage_executable }}
+          Icon=flameshot
+          Type=Application
+          Categories=Utility;Graphics;
+          Terminal=false

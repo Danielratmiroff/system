@@ -4,9 +4,8 @@
   become: yes
   gather_facts: true
   vars:
-    target_user: { { ansible_env.USER } }
-    pipx_install_path: "/home/{{ target_user }}/.local/bin"
-    pipx_command: "{{ pipx_install_path }}/pipx"
+    target_user: "{{ ansible_env.USER }}"
+    pipx_command: "/usr/bin/pipx"
     qtile_package: "qtile"
     dotfile: "{{ ansible_env.HOME }}/dotfiles/qtile"
     qtile_dest: "{{ ansible_env.HOME }}/.config/qtile"
