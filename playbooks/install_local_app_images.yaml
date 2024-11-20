@@ -1,0 +1,52 @@
+---
+- name: Install AppImage Applications and Create Desktop Entries
+  hosts: all
+  gather_facts: true
+
+  vars:
+    # Directory where AppImages are stored
+    appimage_storage_path: "{{ ansible_env.HOME }}/automation/appimages"
+
+    # Directory where icons are stored
+    icon_storage_path: "{{ ansible_env.HOME }}/automation/icons"
+
+    # Directory where desktop entries will be placed
+    desktop_entry_path: "{{ ansible_env.HOME }}/.local/share/applications"
+
+  tasks:
+    - name: Ensure desktop entry directory exists
+      file:
+        path: "{{ desktop_entry_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Find all AppImage files
+      find:
+        paths: "{{ appimage_storage_path }}"
+        patterns: "*.AppImage"
+        file_type: file
+      register: found_appimages
+
+    - name: Make AppImages executable
+      file:
+        path: "{{ item.path }}"
+        mode: "0755"
+        state: file
+      loop: "{{ found_appimages.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Create desktop entries for each AppImage
+      include_tasks: install_image_as_desktop_entry.yaml
+      loop: "{{ found_appimages.files }}"
+      loop_control:
+        loop_var: item
+        label: "{{ item.path }}"
+      vars:
+        # Extract the basename of the AppImage file (e.g., Flameshot-v0.8.5-x86_64.AppImage -> Flameshot-v0.8.5-x86_64)
+        appimage_basename: "{{ item.path | basename | regex_replace('.AppImage$', '') }}"
+        # Extract the app name from the AppImage filename (e.g., Flameshot-v0.8.5-x86_64.AppImage -> Flameshot)
+        app_name: "{{ appimage_basename | regex_replace('[-_][Vv]?[0-9].*$', '') }}"
+
+        icon_path: "{{ icon_storage_path }}/{{ app_name }}.png"
+        desktop_entry: "{{ desktop_entry_path }}/{{ app_name }}.desktop"
