@@ -1,0 +1,30 @@
+---
+- name: Installing Brave explorer from source
+  hosts: all
+  become: true
+  become_method: sudo
+  gather_facts: false
+
+  tasks:  
+    - name: Downloading keyrings from official Brave repository
+      get_url:
+        url: "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+        dest: "/usr/share/keyrings/brave-browser-archive-keyring.gpg"
+        mode: 0444
+
+    - name: Adding Brave repository
+      shell: 'echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list'
+      args:
+        executable: /bin/bash
+
+    - name: Updating apt cache
+      apt:
+        upgrade: yes
+        update_cache: yes
+    
+    - name: Installing Brave browser
+      apt:
+        name: brave-browser
+        state: present
+      
+      

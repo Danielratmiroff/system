@@ -1,0 +1,54 @@
+---
+- name: Install Flameshot AppImage
+  hosts: localhost
+  gather_facts: true
+
+  vars:
+    app_name: "Flameshot"
+    appimage_storage_path: "{{ ansible_env.HOME }}/automation/appimages"
+    desktop_entry: "{{ ansible_env.HOME }}/.local/share/applications/flameshot.desktop"
+    icon_shared_path: "{{ ansible_env.HOME }}/.local/share/icons"
+    icon_automation_path: "{{ ansible_user_dir }}/automation/assets/flameshot.png"
+
+  tasks:
+    - name: Find AppImage files
+      find:
+        paths: "{{ appimage_storage_path }}"
+        patterns: "{{ app_name }}*"
+        file_type: file
+      register: appimage_files
+
+    - name: Ensure the AppImage is executable
+      become: true
+      file:
+        path: "{{ appimage_files.files[0].path }}"
+        mode: "0755"
+        state: file
+
+    - name: Set the AppImage executable path
+      set_fact:
+        appimage_executable: "{{ appimage_files.files[0].path }}"
+
+    - name: Move Flameshot icon to create desktop entry
+      become: true
+      copy:
+        src: "{{ ansible_user_dir }}/automation/assets/flameshot.png"
+        dest: "{{ icon_storage_path }}/{{ app_name }}.png"
+        remote_src: yes
+
+    - name: Set the AppImage executable path
+      set_fact:
+        appimage_executable: "{{ appimage_files.files[0].path }}"
+
+    - name: Create desktop entry for Flameshot
+      become: true
+      copy:
+        dest: "{{ desktop_entry }}"
+        content: |
+          [Desktop Entry]
+          Name=Flameshot
+          Exec={{ appimage_executable }}
+          Icon="{{ ansible_env.USER }}/automation/assets/flameshot.png"
+          Type=Application
+          Categories=Utility;Graphics;
+          Terminal=false

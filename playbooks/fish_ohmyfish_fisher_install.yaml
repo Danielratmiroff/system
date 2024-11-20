@@ -1,0 +1,89 @@
+---
+- name: Installing fish shell
+  hosts: all
+  vars:
+    fish: "/usr/bin/fish"
+    dotfile: "{{ ansible_env.HOME }}/dotfiles/fish"
+    dest: "{{ ansible_env.HOME }}/.config/fish"
+
+  tasks:
+    - name: Installing fish package
+      become: true
+      package:
+        name: fish
+        state: present
+
+    - name: Check fish installation
+      shell: "fish --version"
+      register: fish_version
+      failed_when: fish_version.rc != 0
+
+    - name: "Change login shell of user {{ ansible_env.USER }} to {{ fish }}"
+      become: true
+      user:
+        name: "{{ ansible_env.USER }}"
+        shell: "{{ fish }}"
+
+    # Oh My Fish
+    - name: Check Oh My Fish installation
+      shell: 
+        cmd: "omf -v"
+        executable: "{{ fish }}"
+      register: omf_version
+      failed_when: false
+
+    - name: Downloading oh-my-fish
+      get_url:
+        url: https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install
+        dest: /tmp/omf_install
+        mode: 0755
+      when: omf_version.rc != 0
+
+    # Fisher
+    - name: Check Fisher installation
+      shell: 
+        cmd: "fisher -v"
+        executable: "{{ fish }}"
+      register: fisher_version
+      failed_when: false
+
+    - name: Downloading Fisher
+      get_url: 
+        url: https://git.io/fisher
+        dest: /tmp/fisher_install
+        mode: 0755
+      when: fisher_version.rc != 0
+
+    - name: Installing fisher
+      shell: 
+        cmd: "cat /tmp/fisher_install | source"
+        executable: "{{ fish }}"
+      when: fisher_version.rc != 0
+
+    - name: Installing fisher packages
+      shell: 
+        cmd: "fisher install jorgebucaran/fisher"
+        executable: "{{ fish }}"
+
+    # Configuring fish
+    - name: Checking if dotfiles are available in {{ dotfile }}
+      stat:
+        path: "{{ dotfile }}"
+      register: dotfiles_available
+
+    - name: "Getting all fish files from {{ dotfile }}"
+      find:
+        paths: "{{ dotfile }}"
+        patterns: "*.fish"
+        file_type: file
+      register: fish_files
+      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir
+
+    - name: "Copy all fish files to {{ dest }}"
+      file:
+        src: "{{ item.path }}"
+        dest: "{{ dest }}/{{ item.path | basename }}"
+        state: link
+        force: yes
+      loop: "{{ fish_files.files }}"
+      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir

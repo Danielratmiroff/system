@@ -1,0 +1,46 @@
+---
+# To get this to work you need to get your SSH_AUTH_SOCK environment variable and export it in your script
+# env |  grep SSH_AUTH_SOCK
+# export SSH_AUTH_SOCK=/tmp/ssh-3y8j4JY2q6/agent.1254
+- name: Scheduling CronJob to update Dotfiles repository
+  hosts: all
+  vars:
+    # Schedule
+    minute: "30"
+    hour: "10"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+    # Paths
+    home: "{{ ansible_env.HOME }}"
+    ssh_key_path: "{{ ansible_env.HOME }}/.ssh/github_cronjob"
+
+  tasks:
+  - name: Check if ssh key exists
+    stat:
+      path: "{{ ssh_key_path }}"
+    register: ssh_key_stat
+
+  - name: Create ssh key
+    shell: ssh-keygen -t rsa -C "{{ ansible_env.USER }}" -f "{{ ssh_key_path }}"
+    when: ssh_key_stat.stat.exists == False
+  
+  - name: Add to ssh agent
+    shell: eval "$(ssh-agent -s)"
+    when: ssh_key_stat.stat.exists == False
+
+  - name: Add ssh key to ssh agent
+    shell: ssh-add "{{ ssh_key_path }}"
+    when: ssh_key_stat.stat.exists == False
+
+  - name: "Schedule at: Weekdays: {{ weekday }}, Time: {{ hour }}:{{ minute }}}"
+    cron:
+      name: "dotfiles_update"
+      state: present
+      minute: "{{ minute }}"
+      hour: "{{ hour }}"
+      day: "{{ day }}"
+      month: "{{ month }}"
+      weekday: "{{ weekday }}"
+      job: "bash {{ home }}/automation/push-to-github-script.sh {{ home }}/dotfiles/ >> {{ home }}/system/logs/dotfilescron.log 2>&1"

@@ -1,0 +1,55 @@
+---
+- name: Install Rofi on Target Systems
+  hosts: localhost
+  become: yes
+  vars:
+    rofi_package: rofi
+    rofi_version_command: rofi -v
+  tasks:
+    - name: Ensure the system package cache is updated (Debian/Ubuntu)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Rofi on Debian/Ubuntu
+      apt:
+        name: "{{ rofi_package }}"
+        state: present
+        update_cache: no
+      when: ansible_os_family == "Debian"
+
+    - name: Verify Rofi installation
+      command: "{{ rofi_version_command }}"
+      register: rofi_ver
+      ignore_errors: yes
+
+    - name: Check Rofi version output
+      assert:
+        that:
+          - rofi_ver.rc == 0
+          - "'version' in rofi_ver.stdout.lower()"
+        fail_msg: "Rofi installation failed or Rofi not found in PATH."
+        success_msg: "Rofi installed successfully. Version: {{ rofi_ver.stdout }}"
+
+    # Configuring Rofi
+    - name: Checking if dotfiles are available in {{ dotfile }}
+      stat:
+        path: "{{ dotfile }}"
+      register: dotfiles_available
+
+    - name: "Getting all config files from {{ dotfile }}"
+      find:
+        paths: "{{ dotfile }}"
+        patterns: "*.rasi"
+        file_type: file
+      register: config_files
+      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir
+
+    - name: "Copy config files to {{ qtile_dest }}"
+      file:
+        src: "{{ item.path }}"
+        dest: "{{ dest }}/{{ item.path | basename }}"
+        state: link
+        force: yes
+      loop: "{{ config_files.files }}"
+      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir

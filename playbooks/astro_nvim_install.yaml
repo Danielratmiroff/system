@@ -1,0 +1,40 @@
+---
+- name: Installing AstroVim
+  hosts: all
+  become: true
+  become_method: sudo
+  vars:
+    user: "daniel"
+    config_dest: "/home/{{ user }}/.config/nvim"
+    download_dest: "/home/{{ user }}/Downloads/AstroNvim"
+    repo: "https://github.com/AstroNvim/AstroNvim"
+    repohost: "github.com"
+
+  tasks:  
+    - name: Downloading AstroVim repo into Downloads folder
+      become: false
+      git:
+        repo: "{{ repo }}"
+        dest: "{{ download_dest }}"
+        depth: 1
+        accept_hostkey: true
+
+    - name: Copying AstroVim to "{{ config_dest }}"
+      copy:
+        src: "{{ download_dest }}"
+        dest: "{{ config_dest }}"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: 0755
+    
+    - name: Delete "/Downloads/" file 
+      become: false
+      file:
+        path: "{{ download_dest }}"
+        state: absent
+
+    - name: Change nvim folder permissions
+      shell:
+        cmd: "chown -R {{ user }}:{{ user }} {{ config_dest }}"
+
+

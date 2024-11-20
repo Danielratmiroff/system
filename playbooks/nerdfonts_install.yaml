@@ -1,0 +1,19 @@
+---
+- name: Installing nerdfonts into ~/.fonts
+  hosts: all
+  vars:
+    font_dir: "{{ ansible_env.HOME }}/.fonts"
+
+  tasks:
+    - name: Ensure fonts directory
+      file:
+        path: "{{ font_dir }}"
+        state: directory
+
+    - name: Download fonts
+      unarchive:
+        src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/{{ item }}
+        dest: "{{ font_dir }}"
+        remote_src: yes
+      loop:
+        - UbuntuMono.zip

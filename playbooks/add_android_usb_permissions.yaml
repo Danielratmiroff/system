@@ -1,0 +1,89 @@
+---
+- name: Create android rules for all devices to allow adb access
+  hosts: all
+  become: yes
+  become_method: sudo
+  gather_facts: no
+  vars:
+    - android_rules_file: /etc/udev/rules.d/51-android.rules
+
+  tasks:
+    - name: Check if adb is installed
+      command:
+        cmd: adb --version
+      register: adb_version
+      failed_when: adb_version is not defined
+
+    - name: adb version
+      debug:
+        var: adb_version.stdout_lines
+
+    - name: Create android rules file
+      file:
+        path: "{{ android_rules_file }}"
+        state: touch
+
+    - name: Copy permission rights from all android vendors
+      copy:
+        content: |
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0bb4", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0e79", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0502", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0b05", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="413c", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0489", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="091e", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="18d1", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0bb4", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="12d1", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="24e3", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="2116", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0482", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="17ef", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="1004", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="22b8", MODE="0666", GROUP="plugdev"    
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0409", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="2080", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0955", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="2257", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="10a9", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="1d4d", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0471", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="04da", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="05c6", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="1f53", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="04e8", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="04dd", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0fce", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="0930", MODE="0666", GROUP="plugdev"  
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="19d2", MODE="0666", GROUP="plugdev" 
+        dest: "{{ android_rules_file }}"
+    
+    - name: Change permission rights for android rules file
+      file:
+        path: "{{ android_rules_file }}"
+        mode: 0644
+
+    - name: Reload udev rules 
+      command: udevadm control --reload-rules 
+      register: command_result
+      failed_when: command_result.stderr != ''
+
+    - name: restart udev service
+      command: service udev restart
+      register: command_result
+      failed_when: command_result.stderr != ''
+
+    - name: Trigger udev rules
+      command: udevadm trigger
+      register: command_result
+      failed_when: command_result.stderr != ''
+
+    - name: Check if our rules are applied
+      slurp:
+        src: "{{ android_rules_file }}"
+      register: file_content
+
+    - name: New android rules file content
+      debug:
+        msg: "{{ file_content['content'] | b64decode }}"

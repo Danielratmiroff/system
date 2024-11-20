@@ -1,0 +1,33 @@
+---
+# Create a desktop entry for an application
+# Used by install_local_app_images.yaml
+
+- name: Verify icon exists for {{ app_name }}
+  stat:
+    path: "{{ icon_path | lower }}"
+  register: icon_file
+
+- name: Fail if icon not found for {{ app_name }}
+  fail:
+    msg: "Icon {{ icon_path }} not found for application {{ app_name }}"
+  when: not icon_file.stat.exists
+
+- name: Create desktop entry for {{ app_name }}
+  copy:
+    dest: "{{ desktop_entry }}"
+    content: |
+      [Desktop Entry]
+      Name={{ app_name }}
+      Exec="{{ item.path }}"
+      Icon={{ icon_path | lower }}
+      Type=Application
+      Categories=Utility;{{ app_name }};
+      Terminal=false
+    mode: "0644"
+
+# Create a symbolic link for an application in .local/bin
+- name: Create symbolic link for {{ app_name }} in .local/bin
+  file:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_env.HOME }}/.local/bin/{{ app_name | lower }}"
+    state: link

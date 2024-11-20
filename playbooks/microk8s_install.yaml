@@ -1,0 +1,51 @@
+---
+- name: Installing microk8s (Kubernetes) 
+  hosts: all
+  vars:
+    user: "daniel"
+
+  tasks:  
+    - name: Installing MicroK8s using Snap
+      become: true
+      snap:
+        name: microk8s
+        classic: yes
+        state: present
+
+    - name: Add "{{ user }}" to microk8s group
+      become: true
+      user:
+        name: "{{ user }}"
+        groups: microk8s
+        append: yes
+
+    - name: Add user owner to ~/.kube
+      become: true
+      shell:
+        cmd: "chown -R {{ user }} ~/.kube"
+        executable: /bin/bash
+  
+    - name: Reload group membership
+      shell:
+        cmd: "newgrp microk8s"
+        executable: /bin/bash
+
+    - name: Check new group membership
+      shell: "groups"
+      register: user_groups
+      failed_when: user_groups.stdout.find("microk8s") == -1
+
+    - name: Check MicroK8s installation
+      shell: "microk8s status --wait-ready"
+      register: status
+      failed_when: status.stdout is not search("microk8s is running")
+
+    - name: "Turning on MicroK8s services (observability, dns, dashboard, hostpath-storage, ingress, rbac, host-access)"
+      shell: "microk8s enable dns dashboard hostpath-storage ingress rbac host-access observability"
+      register: microk8s_services
+      failed_when: microk8s_services.rc != 0
+
+    - name: "Creating ~/.kube/config file"
+      shell: "microk8s config > ~/.kube/config"
+      register: kube_config
+      failed_when: kube_config.rc != 0

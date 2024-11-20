@@ -1,0 +1,18 @@
+---
+- name: Installing nvm in bashrc
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Installing NVM itself
+      shell:
+        cmd: "curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.4/install.sh | bash"
+
+    - name: Add nvm to bashrc
+      shell:
+        cmd: 'echo ''export NVM_DIR="$HOME/.nvm"'' >> ~/.bashrc && echo ''[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'' >> ~/.bashrc'
+
+    - name: Reload bashrc
+      shell:
+        cmd: "source $HOME/.bashrc"
+        executable: /bin/bash
