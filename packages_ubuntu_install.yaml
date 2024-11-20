@@ -36,6 +36,7 @@
         - xdotool
         - yadm
         - fzf
+        - kazam
 
         # Gnome configuration
         - gnome-tweaks
