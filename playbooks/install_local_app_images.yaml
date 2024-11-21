@@ -37,7 +37,7 @@
         label: "{{ item.path }}"
 
     - name: Installing each AppImage
-      include_tasks: install_image_as_desktop_entry.yaml
+      include_tasks: tasks/install_image_as_desktop_entry.yaml
       loop: "{{ found_appimages.files }}"
       loop_control:
         loop_var: item
