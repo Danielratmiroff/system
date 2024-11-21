@@ -36,7 +36,7 @@
       vars:
         schedule: "Weekdays: {{ weekday }}, Time: {{ hour }}:{{ minute }}"
       cron:
-        name: "automation_update"
+        name: "system_automation_update"
         state: present
         minute: "{{ minute }}"
         hour: "{{ hour }}"
