@@ -40,6 +40,9 @@
         - nodejs
         - git
 
+        # System tools
+        - rofi
+
         # Used by nvim
         - ripgrep # Fancy grep
         - fd-find # Search tool
