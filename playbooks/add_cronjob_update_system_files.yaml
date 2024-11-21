@@ -1,0 +1,48 @@
+---
+# Scheduling CronJob to update Automation repository
+# You need to add the "github_cronjob" key to your github account
+
+- name: Scheduling CronJob to update Automation repository
+  hosts: all
+  vars:
+    # Schedule
+    minute: "30"
+    hour: "10"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+    # Expected SSH key
+    ssh_key_name: "github_cronjob"
+    ssh_key_path: "{{ ansible_env.HOME }}/.ssh/{{ ssh_key_name }}"
+
+    # Paths
+    push_script: "{{ ansible_env.HOME }}/automation/scripts/push-to-github-script.sh"
+    repository_to_update: "{{ ansible_env.HOME }}/automation/"
+    logs_path: "{{ ansible_env.HOME }}/system/logs/automated_cronjob.log"
+
+  tasks:
+    - name: Check if ssh key exists
+      stat:
+        path: "{{ ssh_key_path }}"
+      register: ssh_key_stat
+
+    - name: Fail if ssh key does not exist
+      fail:
+        msg: "SSH key does not exist. Key expected: '{{ ssh_key_path }}'"
+      when: not ssh_key_stat.stat.exists
+
+    - name: "Schedule at: Weekdays: {{ schedule }}"
+      vars:
+        schedule: "Weekdays: {{ weekday }}, Time: {{ hour }}:{{ minute }}"
+      cron:
+        name: "automation_update"
+        state: present
+        minute: "{{ minute }}"
+        hour: "{{ hour }}"
+        day: "{{ day }}"
+        month: "{{ month }}"
+        weekday: "{{ weekday }}"
+        # Pass the repository path and the ssh key path as arguments
+        # Redirect stdout and stderr to the logs file
+        job: "bash {{ push_script }} {{ repository_to_update }} {{ ssh_key_path }} >> {{ logs_path }} 2>&1"
