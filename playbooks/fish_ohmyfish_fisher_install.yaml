@@ -2,88 +2,50 @@
 - name: Installing fish shell
   hosts: all
   vars:
-    fish: "/usr/bin/fish"
-    dotfile: "{{ ansible_env.HOME }}/dotfiles/fish"
+    fish_path: "/usr/bin/fish"
     dest: "{{ ansible_env.HOME }}/.config/fish"
 
+    fisher_url: "https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish"
+    omf_url: "https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install"
+
   tasks:
-    - name: Installing fish package
-      become: true
-      package:
-        name: fish
-        state: present
-
-    - name: Check fish installation
-      shell: "fish --version"
-      register: fish_version
-      failed_when: fish_version.rc != 0
-
-    - name: "Change login shell of user {{ ansible_env.USER }} to {{ fish }}"
+    - name: "Set fish as shell for user {{ ansible_env.USER }}"
       become: true
       user:
         name: "{{ ansible_env.USER }}"
-        shell: "{{ fish }}"
+        shell: "{{ fish_path }}"
 
     # Oh My Fish
-    - name: Check Oh My Fish installation
-      shell: 
-        cmd: "omf -v"
-        executable: "{{ fish }}"
-      register: omf_version
-      failed_when: false
-
     - name: Downloading oh-my-fish
       get_url:
-        url: https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install
+        url: "{{ omf_url }}"
         dest: /tmp/omf_install
-        mode: 0755
+        mode: "0755"
       when: omf_version.rc != 0
 
     # Fisher
-    - name: Check Fisher installation
-      shell: 
-        cmd: "fisher -v"
-        executable: "{{ fish }}"
-      register: fisher_version
-      failed_when: false
-
-    - name: Downloading Fisher
-      get_url: 
-        url: https://git.io/fisher
-        dest: /tmp/fisher_install
-        mode: 0755
-      when: fisher_version.rc != 0
-
-    - name: Installing fisher
-      shell: 
-        cmd: "cat /tmp/fisher_install | source"
-        executable: "{{ fish }}"
-      when: fisher_version.rc != 0
-
-    - name: Installing fisher packages
-      shell: 
-        cmd: "fisher install jorgebucaran/fisher"
-        executable: "{{ fish }}"
-
-    # Configuring fish
-    - name: Checking if dotfiles are available in {{ dotfile }}
-      stat:
-        path: "{{ dotfile }}"
-      register: dotfiles_available
-
-    - name: "Getting all fish files from {{ dotfile }}"
-      find:
-        paths: "{{ dotfile }}"
-        patterns: "*.fish"
-        file_type: file
-      register: fish_files
-      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir
-
-    - name: "Copy all fish files to {{ dest }}"
+    - name: Create Fish functions directory
       file:
-        src: "{{ item.path }}"
-        dest: "{{ dest }}/{{ item.path | basename }}"
-        state: link
-        force: yes
-      loop: "{{ fish_files.files }}"
-      when: dotfiles_available.stat.exists and dotfiles_available.stat.isdir
+        path: "{{ fisher_install_path | dirname }}"
+        state: directory
+        mode: "0755"
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
+        recurse: true
+
+    - name: Download fisher.fish script
+      get_url:
+        url: "{{ fisher_install_url }}"
+        dest: "{{ fisher_install_path }}"
+        mode: "0644"
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
+      notify: Install Fisher
+
+  handlers:
+    - name: Install Fisher
+      shell: |
+        fish -c "source {{ fisher_install_path }} && {{ fisher_command }}"
+      args:
+        executable: /usr/bin/fish
+      changed_when: false

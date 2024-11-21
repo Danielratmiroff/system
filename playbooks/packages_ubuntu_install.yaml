@@ -41,7 +41,8 @@
         - git
 
         # System tools
-        - rofi
+        - rofi # App launcher
+        - fish # Shell
 
         # Used by nvim
         - ripgrep # Fancy grep
