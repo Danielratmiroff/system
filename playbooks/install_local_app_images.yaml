@@ -36,7 +36,7 @@
       loop_control:
         label: "{{ item.path }}"
 
-    - name: Create desktop entries for each AppImage
+    - name: Installing each AppImage
       include_tasks: install_image_as_desktop_entry.yaml
       loop: "{{ found_appimages.files }}"
       loop_control:
@@ -50,3 +50,16 @@
 
         icon_path: "{{ icon_storage_path }}/{{ app_name }}.png"
         desktop_entry: "{{ desktop_entry_path }}/{{ app_name }}.desktop"
+
+    - name: Successfully installed apps
+      loop: "{{ found_appimages.files }}"
+      loop_control:
+        loop_var: item
+        label: "{{ item.path }}"
+      vars:
+        # Extract the basename of the AppImage file (e.g., Flameshot-v0.8.5-x86_64.AppImage -> Flameshot-v0.8.5-x86_64)
+        appimage_basename: "{{ item.path | basename | regex_replace('.AppImage$', '') }}"
+        # Extract the app name from the AppImage filename (e.g., Flameshot-v0.8.5-x86_64.AppImage -> Flameshot)
+        app_name: "{{ appimage_basename | regex_replace('[-_][Vv]?[0-9].*$', '') }}"
+      debug:
+        msg: "Installed: {{ app_name }}"

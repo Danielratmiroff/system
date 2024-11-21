@@ -1,5 +1,5 @@
 ---
-# Create a desktop entry for an application
+# Create a desktop entry for an application and a symbolic link in .local/bin
 # Used by install_local_app_images.yaml
 
 - name: Verify icon exists for {{ app_name }}

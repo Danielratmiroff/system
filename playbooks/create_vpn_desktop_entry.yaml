@@ -1,0 +1,30 @@
+---
+- name: Create VPN Desktop Entry
+  hosts: localhost
+  vars:
+    # Directory where desktop entries will be placed
+    desktop_entry_path: "{{ ansible_env.HOME }}/.local/share/applications"
+
+    # Name of the desktop entry
+    filename: "vpn"
+
+    # Path to the script that toggles the VPN connection
+    vpn_toggle_script: "{{ ansible_env.HOME }}/automation/scripts/sdui_vpn_connect.sh"
+
+    # Icon for the desktop entry
+    icon_path: "{{ ansible_env.HOME }}/automation/icons/vpn.png"
+
+  tasks:
+    - name: Create VPN desktop entry
+      copy:
+        dest: "{{ desktop_entry_path }}/{{ filename }}.desktop"
+        content: |
+          [Desktop Entry]
+          Name=VPN Toggle
+          Comment=Toggle VPN Connection
+          Exec={{ vpn_toggle_script }}
+          Icon={{ icon_path }}
+          Terminal=false
+          Type=Application
+          Categories=Network;
+        mode: "0644"
