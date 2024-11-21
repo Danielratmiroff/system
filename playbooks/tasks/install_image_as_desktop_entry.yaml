@@ -26,7 +26,7 @@
     mode: "0644"
 
 # Create a symbolic link for an application in .local/bin
-- name: Create symbolic link for {{ app_name }} in .local/bin
+- name: Create symbolic link for {{ app_name }}
   file:
     src: "{{ item.path }}"
     dest: "{{ ansible_env.HOME }}/.local/bin/{{ app_name | lower }}"
