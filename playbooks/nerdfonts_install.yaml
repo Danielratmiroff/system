@@ -2,18 +2,33 @@
 - name: Installing nerdfonts into ~/.fonts
   hosts: all
   vars:
-    font_dir: "{{ ansible_env.HOME }}/.fonts"
+    fonts_dir: "{{ ansible_env.HOME }}/.local/share/fonts"
+    nerdfonts_version: 3.3.0
+    fonts_list:
+      - UbuntuMono
+      - FiraCode
 
   tasks:
     - name: Ensure fonts directory
       file:
-        path: "{{ font_dir }}"
+        path: "{{ fonts_dir }}"
         state: directory
+        mode: "0755"
 
-    - name: Download fonts
+    - name: Create font directory for each font
+      file:
+        path: "{{ fonts_dir }}/{{ item | lower }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ fonts_list }}"
+      loop_control:
+        loop_var: item
+
+    - name: Downloading fonts
       unarchive:
-        src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/{{ item }}
-        dest: "{{ font_dir }}"
-        remote_src: yes
-      loop:
-        - UbuntuMono.zip
+        src: "https://github.com/ryanoasis/nerd-fonts/releases/download/v{{ nerdfonts_version }}/{{ item }}.zip"
+        dest: "{{ fonts_dir }}/{{ item | lower }}"
+        remote_src: true
+      loop: "{{ fonts_list }}"
+      loop_control:
+        loop_var: item

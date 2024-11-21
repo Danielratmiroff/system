@@ -2,29 +2,29 @@
 - name: Installing Brave explorer from source
   hosts: all
   become: true
-  become_method: sudo
+  become_method: ansible.builtin.sudo
   gather_facts: false
 
-  tasks:  
+  tasks:
     - name: Downloading keyrings from official Brave repository
       get_url:
         url: "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
         dest: "/usr/share/keyrings/brave-browser-archive-keyring.gpg"
-        mode: 0444
+        mode: 444
 
-    - name: Adding Brave repository
-      shell: 'echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list'
-      args:
-        executable: /bin/bash
+    - name: Add Brave repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"
+        filename: brave-browser-release
+        state: present
+      become: true
 
     - name: Updating apt cache
       apt:
-        upgrade: yes
-        update_cache: yes
-    
+        upgrade: true
+        update_cache: true
+
     - name: Installing Brave browser
       apt:
         name: brave-browser
         state: present
-      
-      
