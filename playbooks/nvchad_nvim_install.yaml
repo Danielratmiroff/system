@@ -1,0 +1,32 @@
+---
+- name: Installing NvChad Neovim configuration
+  hosts: all
+  vars:
+    installation_dest: "{{ ansible_env.HOME }}/.config/nvim"
+    download_folder: "/tmp/nvchad"
+    repo: "https://github.com/NvChad/starter"
+
+  tasks:
+    - name: Downloading NvChad
+      git:
+        repo: "{{ repo }}"
+        dest: "{{ download_folder }}"
+        accept_hostkey: true
+        clone: true
+        version: main
+
+    - name: Copying NvChad to "{{ installation_dest }}"
+      become: true
+      copy:
+        src: "{{ download_folder }}/"
+        dest: "{{ installation_dest }}"
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
+        force: true
+        mode: "0744"
+
+    - name: Deleting .git folder
+      become: true
+      file:
+        path: "{{ installation_dest }}/.git"
+        state: absent
