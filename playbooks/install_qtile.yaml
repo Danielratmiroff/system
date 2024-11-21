@@ -1,7 +1,7 @@
 ---
 - name: Install Qtile using pipx
   hosts: localhost
-  become: yes
+  become: true
   gather_facts: true
   vars:
     target_user: "{{ ansible_env.USER }}"
