@@ -1,0 +1,1 @@
+# Store your downloaded AppImages in this folder, to automatically install them with "install_local_app_images.yaml"
