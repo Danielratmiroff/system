@@ -1,25 +1,20 @@
 ---
 - name: Installing main packages on Ubuntu
   hosts: all
-  become_method: sudo
+  become_method: ansible.builtin.sudo
   become: true
   gather_facts: false
 
   tasks:
+    - name: Install Ansible collections from requirements.yml
+      command: ansible-galaxy collection install -r requirements.yml
+      args:
+        creates: ~/.ansible/collections/ansible_collections
+
     - name: Updating apt cache
       apt:
-        upgrade: yes
-        update_cache: yes
-    - name: Check if nala is installed
-      stat:
-        path: /usr/bin/nala
-      register: nala_installed
-
-    - name: Action needed to completetly configure Nala
-      become: false
-      debug:
-        msg: "Run: 'nala fetch' to set up Nala's mirrors."
-      when: nala_installed.stat.exists == False
+        upgrade: true
+        update_cache: true
 
     - name: Installing packages from Ubuntu repository using Nala
       package:
@@ -29,42 +24,40 @@
         - curl
         - net-tools
         - unzip
-        - bat
         - yamllint
-        - eza
-        - nala
-        - xdotool
-        - yadm
-        - fzf
-        - kazam
+        - bat # Fancy cat
+        - eza # Easy alias
+        - nala # Apt package manager
+        - xdotool # Keyboard automation
+        - yadm # Dotfiles manager
+        - fzf # Fuzzy finder
 
         # Gnome configuration
-        - gnome-tweaks
-        - gnome-shell-extensions
+        - gnome-tweaks # Gnome settings
+        - gnome-shell-extensions # Gnome extensions
 
         # Dev stuff
-        - npm
+        - npm # Node package manager
         - nodejs
         - git
 
         # Used by nvim
-        - ripgrep
-        - fd-find
+        - ripgrep # Fancy grep
+        - fd-find # Search tool
 
         # Build from source
         - ninja-build
         - cmake
         - gettext
-      when: nala_installed.stat.exists == True
+      when: nala_installed.stat.exists
 
     - name: Installing Snap packages
-      snap:
+      community.general.snap:
         name: "{{ item }}"
       loop:
-        - vlc
-        - multipass
-        - lxd
-        - jump
-        - pinta
-        - snap
-        - localsend
+        - vlc # Video player
+        - multipass # VM manager
+        - lxd # Linux containers
+        - jump # SSH manager
+        - pinta # Image editor
+        - localsend # File sharing
