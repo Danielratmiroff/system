@@ -2,21 +2,21 @@
 - name: Installing main packages on Ubuntu
   hosts: all
   become_method: ansible.builtin.sudo
-  become: true
-  gather_facts: false
 
   tasks:
     - name: Install Ansible collections from requirements.yml
-      command: ansible-galaxy collection install -r requirements.yml
+      command: "ansible-galaxy collection install -r {{ ansible_env.HOME }}/automation/requirements.yml"
       args:
-        creates: ~/.ansible/collections/ansible_collections
+        creates: "{{ ansible_env.HOME }}/.ansible/collections/ansible_collections"
 
     - name: Updating apt cache
+      become: true
       apt:
         upgrade: true
         update_cache: true
 
     - name: Installing packages from Ubuntu repository using Nala
+      become: true
       package:
         name: "{{ item }}"
         state: present
@@ -29,7 +29,6 @@
         - eza # Easy alias
         - nala # Apt package manager
         - xdotool # Keyboard automation
-        - yadm # Dotfiles manager
         - fzf # Fuzzy finder
 
         # Gnome configuration
@@ -49,7 +48,6 @@
         - ninja-build
         - cmake
         - gettext
-      when: nala_installed.stat.exists
 
     - name: Installing Snap packages
       community.general.snap:
