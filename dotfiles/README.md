@@ -1,19 +1,9 @@
-# dotfiles
+# 🏠 dotfiles
 My personal dotfiles configuration
 
-## Overview
-This repository contains my personal dotfiles and an automated system to manage them using Ansible playbooks. 
 The system creates symbolic links from this repository to the appropriate locations. 
 
-## Currently Managed Configurations
-- Qtile (Window Manager)
-- Rofi (Application Launcher)
-- Fish (Shell)
-- WezTerm (Terminal Emulator)
-
-## Usage
-
-### Setting Up Symlinks
+## 🚀 Usage
 To set up all symlinks for the configured applications:
 
 ```bash
@@ -22,7 +12,7 @@ ansible-playbook $HOME/automation/playbooks/configure_dotfiles_symlinks.yaml
 
 This will automatically create all necessary symlinks for the configured applications.
 
-## Adding a New Configuration
+## 📝 Adding a New Configuration
 
 To add a new application's configuration to this system:
 
@@ -45,9 +35,9 @@ To add a new application's configuration to this system:
        file: tasks/create_myapp_symlink.yaml
    ```
 
-### Tasks templates
+## 📋 Tasks templates
 
-### Pattern (Multiple Files)
+### 📁 Pattern (Multiple Files)
 
 For applications that use multiple configuration files, use this pattern:
 
@@ -72,10 +62,9 @@ For applications that use multiple configuration files, use this pattern:
     state: link
     force: true
   loop: "{{ myapp_files.files }}"
-
 ```
 
-### Alternative Pattern (Single File)
+### 📄 Alternative Pattern (Single File)
 
 For applications that use a single configuration file, use this pattern:
 

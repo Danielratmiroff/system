@@ -21,21 +21,7 @@ ansible-galaxy collection install community.general
 ## 🎯 Adding a New Target Host
 
 ```bash
-sudo vim $HOME/automation/config/hosts.ini
-```
-
-## 📦 Managing AppImages
-
-### Adding a New AppImage
-
-1. Copy AppImage to apps directory
-```bash
-# $HOME/automation/appimages/apps/
-```
-
-2. Copy icon to icons directory
-```bash
-# $HOME/automation/appimages/icons/
+vim $HOME/automation/config/hosts.ini
 ```
 
 ## 🛠️ Main Features
@@ -65,8 +51,16 @@ ansible-playbook playbooks/packages_ubuntu_install.yaml
 # Install fish plugins
 ansible-playbook playbooks/configure_fish_shell.yaml
 ```
+
 ### 5. Nerd Fonts
 ```bash
 # Install nerd fonts
 ansible-playbook playbooks/nerdfonts_install.yaml
+```
+
+### 6. Cronjob Automation
+```bash
+# Install cronjobs to automate tasks
+ansible-playbook playbooks/create_cronjob_update_automation_repository.yaml
+ansible-playbook playbooks/cronjob_create_backup_ssh_keys.yaml
 ```
