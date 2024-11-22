@@ -30,15 +30,19 @@
         - nala # Apt package manager
         - xdotool # Keyboard automation
         - fzf # Fuzzy finder
+        - pipx # Python package manager
+        - python3-pip # Python package manager
+        - py
 
         # Gnome configuration
         - gnome-tweaks # Gnome settings
         - gnome-shell-extensions # Gnome extensions
 
         # Dev stuff
-        - npm # Node package manager
+        - npm
         - nodejs
         - git
+        - gitlab-runner
 
         # System tools
         - rofi # App launcher
@@ -63,3 +67,9 @@
         - jump # SSH manager
         - pinta # Image editor
         - localsend # File sharing
+
+    - name: Ensure pipx is in PATH
+      command: pipx ensurepath
+      become: false
+      register: pipx_path_result
+      changed_when: pipx_path_result.stdout is not regex('is already in PATH')
