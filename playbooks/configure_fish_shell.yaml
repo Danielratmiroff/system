@@ -11,8 +11,8 @@
         name: "{{ ansible_env.USER }}"
         shell: "{{ fish_path }}"
 
-    - name: Execute hey.fish script
-      ansible.builtin.script:
+    - name: Installing fish plugins
+      script:
         cmd: "{{ ansible_env.HOME }}/install_fish_plugins.fish"
       args:
         executable: /usr/bin/fish
