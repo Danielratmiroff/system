@@ -1,0 +1,7 @@
+---
+- name: Create symlinks for wezterm config file
+  file:
+    src: "{{ ansible_env.HOME }}/automation/dotfiles/wezterm.lua"
+    dest: "{{ ansible_env.HOME }}/.wezterm.lua"
+    state: link
+    force: true
