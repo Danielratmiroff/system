@@ -1,0 +1,18 @@
+---
+- name: Installing main packages on Ubuntu
+  hosts: all
+  become_method: ansible.builtin.sudo
+
+  tasks:
+    # Set fish as default shell
+    - name: "Set fish as shell for user {{ ansible_env.USER }}"
+      become: true
+      user:
+        name: "{{ ansible_env.USER }}"
+        shell: "{{ fish_path }}"
+
+    - name: Execute hey.fish script
+      ansible.builtin.script:
+        cmd: "{{ ansible_env.HOME }}/install_fish_plugins.fish"
+      args:
+        executable: /usr/bin/fish
