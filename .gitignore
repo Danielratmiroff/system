@@ -1,4 +1,4 @@
 .secrets
 .aider*
 .env
-appimages/*.AppImage
+*.AppImage
