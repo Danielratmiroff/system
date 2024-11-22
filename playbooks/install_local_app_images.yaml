@@ -5,10 +5,10 @@
 
   vars:
     # Directory where AppImages are stored
-    appimage_storage_path: "{{ ansible_env.HOME }}/automation/appimages"
+    appimage_storage_path: "{{ ansible_env.HOME }}/automation/appimages/apps"
 
     # Directory where icons are stored
-    icon_storage_path: "{{ ansible_env.HOME }}/automation/icons"
+    icon_storage_path: "{{ ansible_env.HOME }}/automation/appimages/icons"
 
     # Directory where desktop entries will be placed
     desktop_entry_path: "{{ ansible_env.HOME }}/.local/share/applications"

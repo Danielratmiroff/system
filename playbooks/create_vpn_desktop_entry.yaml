@@ -12,7 +12,7 @@
     vpn_toggle_script: "{{ ansible_env.HOME }}/automation/scripts/sdui_vpn_connect.sh"
 
     # Icon for the desktop entry
-    icon_path: "{{ ansible_env.HOME }}/automation/icons/vpn.png"
+    icon_path: "{{ ansible_env.HOME }}/automation/assets/vpn.png"
 
   tasks:
     - name: Create VPN desktop entry
