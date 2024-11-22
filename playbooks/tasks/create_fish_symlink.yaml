@@ -1,0 +1,20 @@
+---
+- name: Ensure .config/fish directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.config/fish"
+    state: directory
+    mode: "0755"
+
+- name: Find all files in fish directory
+  find:
+    paths: "{{ ansible_env.HOME }}/automation/dotfiles/fish"
+    file_type: file
+  register: fish_files
+
+- name: Create symlinks for all fish files
+  file:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_env.HOME }}/.config/fish/{{ item.path | basename }}"
+    state: link
+    force: true
+  loop: "{{ fish_files.files }}"

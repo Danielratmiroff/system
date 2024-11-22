@@ -1,0 +1,20 @@
+---
+- name: Ensure .config/rofi directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.config/rofi"
+    state: directory
+    mode: "0755"
+
+- name: Find all files in Rofi directory
+  find:
+    paths: "{{ ansible_env.HOME }}/automation/dotfiles/rofi"
+    file_type: file
+  register: rofi_files
+
+- name: Create symlinks for all Rofi files
+  file:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_env.HOME }}/.config/rofi/{{ item.path | basename }}"
+    state: link
+    force: true
+  loop: "{{ rofi_files.files }}"

@@ -1,0 +1,19 @@
+---
+- name: Create symlinks for configuration files
+  hosts: all
+  tasks:
+    - name: Include Qtile symlink tasks
+      include_tasks:
+        file: tasks/create_qtile_symlink.yaml
+
+    - name: Include Rofi symlink tasks
+      include_tasks:
+        file: tasks/create_rofi_symlink.yaml
+
+    - name: Include Fish symlink tasks
+      include_tasks:
+        file: tasks/create_fish_symlink.yaml
+
+    - name: Include Wezterm symlink tasks
+      include_tasks:
+        file: tasks/create_wezterm_symlink.yaml
