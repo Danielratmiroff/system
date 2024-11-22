@@ -1,0 +1,20 @@
+---
+- name: Ensure .config/qtile directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.config/qtile"
+    state: directory
+    mode: "0755"
+
+- name: Find all files in Qtile directory
+  find:
+    paths: "{{ ansible_env.HOME }}/automation/dotfiles/qtile"
+    file_type: file
+  register: qtile_files
+
+- name: Create symlinks for all Qtile files
+  file:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_env.HOME }}/.config/qtile/{{ item.path | basename }}"
+    state: link
+    force: true
+  loop: "{{ qtile_files.files }}"

@@ -38,9 +38,8 @@ alias cdd 'cd $HOME/code/bycs-messenger-android/'
 alias cds 'cd $HOME/.ssh/'
 alias cdi 'cd $HOME/code/terminaider/'
 alias cdg 'cd $HOME/code/gai/'
-alias edit 'nv $HOME/dotfiles/fish/config.fish'
-alias term 'nv $HOME/dotfiles/wezterm.lua'
-alias dot 'cd $HOME/dotfiles/'
+alias edit 'nv $HOME/automation/dotfiles/fish/config.fish'
+alias term 'nv $HOME/automation/dotfiles/wezterm.lua'
 
 # File listing
 alias ls 'eza --icons'
