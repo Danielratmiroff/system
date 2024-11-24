@@ -68,6 +68,7 @@
         - pinta # Image editor
         - localsend # File sharing
         - postman # API calls
+        - pinta # Image edtir
 
     - name: Ensure pipx is in PATH
       command: pipx ensurepath
