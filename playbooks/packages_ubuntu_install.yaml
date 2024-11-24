@@ -67,6 +67,7 @@
         - jump # SSH manager
         - pinta # Image editor
         - localsend # File sharing
+        - postman # API calls
 
     - name: Ensure pipx is in PATH
       command: pipx ensurepath
