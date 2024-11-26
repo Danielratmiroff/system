@@ -2,8 +2,7 @@ if status is-interactive
     # Commands to run in interactive sessions can go here
 end
 
-source $HOME/dotfiles/.secrets
-
+source $HOME/automation/.secrets
 set -g -x fish_greeting ''
 set -g -x GO111MODULE on
 set -g theme_powerline_fonts no
