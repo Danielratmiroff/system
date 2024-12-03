@@ -32,6 +32,7 @@ alias cursor '/usr/local/bin/cursor.AppImage'
 # Navigation
 alias rm 'rm -i'
 alias .. 'cd ..'
+alias ... 'cd .. && cd ..'
 alias cda 'cd $HOME/automation'
 alias dot 'cd $HOME/automation/dotfiles/'
 alias cdd 'cd $HOME/code/bycs-messenger-android/'
