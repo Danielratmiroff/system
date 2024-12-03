@@ -3,8 +3,8 @@
 pulseaudio --start &
 slack &
 brave-browser &
-obsidian &
-cursor &
+#obsidian &
+#cursor &
 wezterm &
 #zen-browser
 
