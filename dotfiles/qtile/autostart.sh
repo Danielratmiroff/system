@@ -5,7 +5,7 @@ slack &
 brave-browser &
 #obsidian &
 #cursor &
-wezterm &
+#wezterm &
 #zen-browser
 
 # killall -q polybar
