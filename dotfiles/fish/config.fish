@@ -75,7 +75,6 @@ alias g='git'
 alias ga='git add .'
 alias gc='git commit -m '
 alias gp='git push origin '
-alias gpu='git push upstream '
 alias gt='git tag -a '
 
 # Play
@@ -122,10 +121,6 @@ end
 
 function gacp
     git commit -am "$argv" && git push origin
-end
-
-function gacpu
-    git commit -am "$argv" && git push upstream
 end
 
 function add_untracked
