@@ -8,6 +8,7 @@ set -g -x GO111MODULE on
 set -g theme_powerline_fonts no
 set -g JAVA_HOME /usr/lib/jvm/java-1.21.0-openjdk-amd64
 
+
 # -------------------
 # Theme config
 # -------------------
