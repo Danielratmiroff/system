@@ -124,10 +124,6 @@ function gacp
     git commit -am "$argv" && git push origin
 end
 
-function add_untracked
-    git status --short | grep 'A ' | cut -c4- | xargs -d '\n' git add
-end
-
 function clean_gitignore
     git rm -r --cached .
     git add .
@@ -201,46 +197,6 @@ function android_studio
         case stop
             pkill java
             echo "Android Studio stopped"
-        case '*'
-            echo "Unknown command '$cmd'"
-    end
-end
-
-function work
-    set cmd $argv[1]
-
-    switch $cmd
-        case start
-            /usr/bin/bash $HOME/automation/start_work_apps.sh
-        case stop
-            pkill slack
-            pkill simplenote
-        case '*'
-            echo "Unknown command '$cmd'"
-    end
-end
-
-function study
-    set cmd $argv[1]
-
-    switch $cmd
-        case start
-            /usr/bin/bash $HOME/automation/start_study_apps.sh
-        case stop
-            pkill brave
-        case '*'
-            echo "Unknown command '$cmd'"
-    end
-end
-
-function lang
-    set cmd $argv[1]
-
-    switch $cmd
-        case start
-            /usr/bin/bash $HOME/automation/start_lang_apps.sh
-        case stop
-            pkill brave
         case '*'
             echo "Unknown command '$cmd'"
     end
