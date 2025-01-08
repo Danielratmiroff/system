@@ -28,7 +28,6 @@ alias vim nvim
 
 alias cursor '/usr/local/bin/cursor.AppImage'
 #alias fd (which fdfind)
-#alias lg lazygit
 
 # Navigation
 alias rm 'rm -i'
@@ -80,7 +79,6 @@ alias gt='git tag -a '
 
 # Play
 alias gobuild='go build -o termi'
-#alias ai='$HOME/code/terminaider/termi'
 alias regai='del ~/code/gai/dist/* && python -m build && twine upload ~/code/gai/dist/*'
 
 # -------------------
