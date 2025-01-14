@@ -47,6 +47,7 @@
         # System tools
         - rofi # App launcher
         - fish # Shell
+        - virtualbox # VM
 
         # Used by nvim
         - ripgrep # Fancy grep
