@@ -12,7 +12,7 @@ set -g JAVA_HOME /usr/lib/jvm/java-1.21.0-openjdk-amd64
 # -------------------
 # Theme config
 # -------------------
-source $HOME/.config/fish/theme_bobthefish.fish
+source $HOME/automation/dotfiles/fish/theme_bobthefish.fish
 set -g -x theme_color_scheme solarized-dark
 
 # -------------------
@@ -28,6 +28,9 @@ alias vim nvim
 
 alias cursor '/usr/local/bin/cursor.AppImage'
 #alias fd (which fdfind)
+
+alias win_console 'lxc console win11 --type=vga'
+alias win_start 'lxc start win11 --console=vga'
 
 # Navigation
 alias rm 'rm -i'
@@ -170,8 +173,7 @@ function copy
 end
 
 function source_config
-    source $HOME/.config/fish/config.fish
-    source $HOME/dotfiles/fish/config.fish
+    source $HOME/automation/dotfiles/fish/config.fish
 end
 
 function fish_remove_path
