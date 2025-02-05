@@ -1,0 +1,15 @@
+---
+- name: Install Ollama
+  hosts: all
+  become: yes  # Run as root (if necessary)
+  tasks:
+    - name: Run Ollama installation script
+      shell: |
+        curl -fsSL https://ollama.com/install.sh | sh
+      args:
+        executable: /bin/bash  # Ensure the script runs in a bash shell
+      register: result
+
+    - name: Result 
+      debug:
+        var: result.stdout
