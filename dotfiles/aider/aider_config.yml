@@ -1,0 +1,10 @@
+dark-mode: true
+#edit-format: whole
+attribute-author: false
+attribute-committer: false
+auto-commits: false
+commit: false
+cache-prompts: true
+#model: openai/gpt-4o-mini
+gui: false
+openai-api-key: $OPENAI_API_KEY

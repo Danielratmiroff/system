@@ -26,7 +26,7 @@ set -g auto $HOME/automation/
 alias nv nvim
 alias vim nvim
 
-alias cursor '/usr/local/bin/cursor.AppImage'
+alias cursor '/home/daniel/automation/appimages/apps/cursor-0.45.9-build-250202tgstl42dt-x86_64.AppImage'
 #alias fd (which fdfind)
 
 alias win_console 'lxc console win11 --type=vga'
