@@ -26,7 +26,7 @@ set -g auto $HOME/automation/
 alias nv nvim
 alias vim nvim
 
-alias cursor '~/automation/appimages/apps/cursor-0.45.10-build-250205buadkzpea-x86_64.AppImage'
+alias cursor '$HOME/automation/appimages/apps/cursor-0.45.11-build-250207y6nbaw5qc-x86_64.AppImage'
 #alias fd (which fdfind)
 
 
