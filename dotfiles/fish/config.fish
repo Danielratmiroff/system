@@ -83,7 +83,7 @@ alias gt='git tag -a '
 
 # Play
 alias gobuild='go build -o termi'
-alias regai='del ~/code/gai/dist/* && python -m build && twine upload ~/code/gai/dist/*'
+alias regai='del ~/code/gai/dist/* && python3 -m build && twine upload ~/code/gai/dist/*'
 
 # -------------------
 # Helper functions
