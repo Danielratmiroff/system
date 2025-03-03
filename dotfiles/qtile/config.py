@@ -39,7 +39,7 @@ sys.path.append(
     '/home/daniel/.local/qtile-venv/lib/python3.12.3/site-packages')
 
 
-mod = "mod4"
+mod = "mod1"
 terminal = guess_terminal()
 main_screen_groups = "12345"
 
@@ -107,7 +107,8 @@ keys = [
     Key([mod], "a", lazy.spawn('rofi -show drun'), desc="Launch rofi drun"),
     Key([mod], "TAB", lazy.spawn('rofi -show window'), desc="Launch rofi window"),
     Key([mod], "c", lazy.spawn('cursor'), desc="Launch cursor"),
-    Key([mod], "Print", lazy.spawn('gnome-screenshot -i'), desc="Launch screenshot"),
+    Key([mod], "Print", lazy.spawn(
+        'gnome-screenshot -i'), desc="Launch screenshot"),
     Key([mod, "control"], "l", lazy.spawn(
         'betterlockscreen -l --off 30'), desc="Lock screen"),
 
