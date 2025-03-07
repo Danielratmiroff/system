@@ -58,6 +58,22 @@
         - cmake
         - gettext
 
+        # Tauri
+        - libwebkit2gtk-4.1-dev 
+        - libjavascriptcoregtk-4.1-dev 
+        - libgtk-4-dev 
+        - libgdk3.0-cil-dev 
+        - libatk1.0-dev 
+        - libsoup-3.0-dev 
+        - libasound2-dev 
+        - libssl-dev 
+        - libayatana-appindicator3-dev 
+        - librsvg2-dev 
+        - libxdo-dev 
+        - build-essential 
+        - file 
+        - patchelf
+
     - name: Installing Snap packages
       community.general.snap:
         name: "{{ item }}"
