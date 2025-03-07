@@ -311,3 +311,10 @@ function fzf_find_file_nvim
     end
     commandline -f repaint
 end
+
+# pnpm
+set -gx PNPM_HOME "/home/daniel/.local/share/pnpm"
+if not string match -q -- $PNPM_HOME $PATH
+  set -gx PATH "$PNPM_HOME" $PATH
+end
+# pnpm end
