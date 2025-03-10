@@ -63,6 +63,7 @@ alias ips='ip -c -br addr'
 alias del='trash -vrf'
 alias py='python3'
 alias venv='source ./venv/bin/activate.fish'
+alias po='poetry'
 
 
 # Multipass
