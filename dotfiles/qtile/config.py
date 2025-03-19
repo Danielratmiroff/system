@@ -1,11 +1,3 @@
-# Copyright (c) 2010 Aldo Cortesi
-# Copyright (c) 2010, 2014 dequis
-# Copyright (c) 2012 Randall Ma
-# Copyright (c) 2012-2014 Tycho Andersen
-# Copyright (c) 2012 Craig Barnes
-# Copyright (c) 2013 horsik
-# Copyright (c) 2013 Tao Sauvage
-
 from types import FunctionType
 from libqtile.widget import (
     GroupBox,
@@ -108,7 +100,7 @@ keys = [
     Key([mod], "TAB", lazy.spawn('rofi -show window'), desc="Launch rofi window"),
     Key([mod], "c", lazy.spawn('cursor'), desc="Launch cursor"),
     Key([mod], "Print", lazy.spawn(
-        'gnome-screenshot -i'), desc="Launch screenshot"),
+        'Flameshot gui'), desc="Launch screenshot"),
     Key([mod, "control"], "l", lazy.spawn(
         'betterlockscreen -l --off 30'), desc="Lock screen"),
 
