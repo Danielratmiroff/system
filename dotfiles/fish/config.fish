@@ -6,7 +6,7 @@ source $HOME/automation/.secrets
 set -g -x fish_greeting ''
 set -g -x GO111MODULE on
 set -g theme_powerline_fonts no
-set -g JAVA_HOME /usr/lib/jvm/java-1.21.0-openjdk-amd64
+set -g JAVA_HOME '/snap/android-studio/161/jbr'
 
 
 # -------------------
@@ -14,11 +14,6 @@ set -g JAVA_HOME /usr/lib/jvm/java-1.21.0-openjdk-amd64
 # -------------------
 source $HOME/automation/dotfiles/fish/theme_bobthefish.fish
 set -g -x theme_color_scheme solarized-dark
-
-# -------------------
-# Global Variables
-# -------------------
-set -g auto $HOME/automation/
 
 # -------------------
 # Aliases 
