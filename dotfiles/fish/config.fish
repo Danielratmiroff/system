@@ -40,6 +40,7 @@ alias cdi 'cd $HOME/code/terminaider/'
 alias cdg 'cd $HOME/code/gai/'
 alias edit 'nv $HOME/automation/dotfiles/fish/config.fish'
 alias term 'nv $HOME/automation/dotfiles/wezterm.lua'
+alias ai 'ollama run gemma3:12b'
 
 # File listing
 alias ls 'eza --icons'
@@ -79,7 +80,6 @@ alias gt='git tag -a '
 
 # Play
 alias gobuild='go build -o termi'
-alias regai='del ~/code/gai/dist/* && python3 -m build && twine upload ~/code/gai/dist/*'
 
 # -------------------
 # Helper functions
