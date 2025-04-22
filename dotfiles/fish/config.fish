@@ -6,7 +6,7 @@ source $HOME/automation/.secrets
 set -g -x fish_greeting ''
 set -g -x GO111MODULE on
 set -g theme_powerline_fonts no
-set -g JAVA_HOME '/snap/android-studio/189/jbr'
+set -g JAVA_HOME '/usr/lib/jvm/java-17-openjdk-amd64'
 
 
 # -------------------
