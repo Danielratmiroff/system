@@ -1,5 +1,4 @@
 .secrets
 .aider*
 .env
-*.AppImage*
-*.deb
+appimages/apps/*
