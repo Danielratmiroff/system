@@ -21,7 +21,7 @@
 
     - name: Updating apt cache
       apt:
-        upgrade: true
+        #upgrade: true
         update_cache: true
 
     - name: Installing Brave browser
