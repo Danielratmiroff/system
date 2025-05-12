@@ -128,9 +128,7 @@ groups = [
     Group("1",
           label="󰭹",  # Chat Icon
           matches=[
-              Match(wm_class="slack"),
               Match(wm_class="obsidian")
-
           ],
           layout="max",
           screen_affinity=1,
@@ -157,7 +155,10 @@ groups = [
           ),
     Group("5",
           label="󰅱",  # Code Icon
-          #   matches=[Match(wm_class="brave-browser")],
+          matches=[
+              Match(wm_class="slack"),
+
+          ],
           screen_affinity=1,
           layout="max",
           ),
