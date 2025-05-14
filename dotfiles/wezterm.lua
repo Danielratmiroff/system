@@ -12,9 +12,9 @@ config:set_strict_mode(true)
 
 config.font = wezterm.font("Hack")
 config.font_size = 14
-config.color_scheme = "Catppuccin Mocha (Gogh)"
+-- config.color_scheme = "Catppuccin Mocha (Gogh)"
 --config.color_scheme = "ForestBlue"
---config.color_scheme = "Tokyo Night Storm"
+config.color_scheme = "Tokyo Night Storm"
 --config.color_scheme = "Github Dark (Gogh)"
 --config.color_scheme = "Dracula"
 config.window_background_opacity = 0.85
@@ -22,6 +22,13 @@ config.window_background_opacity = 0.85
 -- Set initial window dimensions
 config.initial_rows = 40
 config.initial_cols = 180
+
+-- Directory-specific background colors
+local dir_to_color = {
+	["/home/daniel"] = { background = "#2f0000" },  
+	["/home/daniel/code/bavaria-matrix-react-sdk"] = { background = "#1a1a1a" },  
+	["/home/daniel/code/bycs-messenger-android"] = { background = "#1a1a1a" }, 
+}
 
 local TITLEBAR_COLOR = "#333333"
 local mux = wezterm.mux
@@ -69,6 +76,21 @@ wezterm.on("update-status", function(window, pane)
 	local cwd_uri = pane:get_current_working_dir()
 	if cwd_uri and cwd_uri.host then
 		hostname = cwd_uri.host
+	end
+
+	-- Get current working directory and update background color if needed
+	if cwd_uri then
+		local path = cwd_uri.file_path or ""
+		local path_without_trailing_slash = path:gsub("/$", "")
+		
+		-- Check if this path matches any of our configured directories
+		local overrides = dir_to_color[path_without_trailing_slash]
+		if overrides then
+			window:set_config_overrides({ window_background_opacity = 0.85, colors = overrides })
+		else
+			-- Reset to default if we don't have a special color for this directory
+			window:set_config_overrides({ window_background_opacity = 0.85 })
+		end
 	end
 	table.insert(cells, " " .. hostname)
 

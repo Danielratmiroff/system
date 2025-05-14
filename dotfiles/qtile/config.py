@@ -37,16 +37,18 @@ main_screen_groups = "12345"
 
 
 @hook.subscribe.client_new
-def move_cursor_to_group3(window):
+def move_starting_windows(window):
     if window.name == "cursor":
         window.togroup("3", switch_group=False)
+    if window.name == "wezterm":
+        window.togroup("2", switch_group=False)
 
 
 @hook.subscribe.startup_once
 def autostart():
     home = os.path.expanduser('~/.config/qtile/autostart.sh')
     subprocess.Popen([home])
-    move_cursor_to_group3
+    move_starting_windows
 
 
 colors = {
@@ -82,8 +84,8 @@ keys = [
     Key([mod, "shift"], "k", lazy.layout.shuffle_up()),
 
     # Resize
-    Key([mod], "i", lazy.layout.grow()),
-    Key([mod], "m", lazy.layout.shrink()),
+    Key([mod], "Up", lazy.layout.grow()),
+    Key([mod], "Down", lazy.layout.shrink()),
     Key([mod], "n", lazy.layout.reset()),
     Key([mod, "shift"], "n", lazy.layout.normalize()),
     Key([mod], "o", lazy.layout.maximize()),
@@ -213,7 +215,7 @@ for i in groups:
 
 layout_theme = dict(
     margin="15",
-    border_width=2
+    border_width=3
 )
 
 
@@ -230,7 +232,7 @@ layouts = [
     # layout.Bsp(),
     # layout.Matrix(),
     layout.MonadTall(
-        border_focus=colors["inactive"],
+        border_focus=colors["accent"],
         #        ratio=layout_theme["ratio"],
         #    margin=layout_theme["margin"],
         border_width=layout_theme["border_width"]
