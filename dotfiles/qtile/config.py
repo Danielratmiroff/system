@@ -126,50 +126,77 @@ keys = [
     # Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
 ]
 
+layout_theme = dict(
+    margin="15",
+    border_width=3
+)
+
+layouts = [
+    layout.Max(),
+    layout.MonadTall(
+        border_focus=colors["accent"],
+        #        ratio=layout_theme["ratio"],
+        #    margin=layout_theme["margin"],
+        border_width=layout_theme["border_width"]
+    ),
+    layout.MonadThreeCol(
+        border_focus=colors["accent"],
+        #        ratio=layout_theme["ratio"],
+        #    margin=layout_theme["margin"],
+        border_width=layout_theme["border_width"]
+    ),
+]
+
 # Main screen = 1
 # Secondary screen = 0
 groups = [
     Group("1",
-          label="󰭹",  # Chat Icon
+          #   label="󰭹",  # Chat Icon
+          #   label="󰅱",  # Code Icon
+          label="",  # Linux
           matches=[
-              Match(wm_class="slack"),
-
+              Match(wm_class="wezterm"),
           ],
-          layout="max",
+          layout="monadtall",
           screen_affinity=1,
           ),
     Group("2",
           #   label="", # Terminal
-          label="",  # Linux
+          #   label="",  # Linux
+          label="󰅱",  # Code Icon
           #   matches=[Match(wm_class="org.wezfurlong.wezterm")],
-          layout="MonadTall",
+          layout="monadtall",
           screen_affinity=1
           ),
     Group("3",
           label="󰅱",  # Code Icon
           #   matches=[Match(wm_class="cursor")],
           screen_affinity=1,
-          layout="MonadTall",
+          layout="monadtall",
           ),
     Group("4",
-          #   label="󰀲", # Android Icon
+          #   label="󰀲",  # Android Icon
           label="󰅱",  # Code Icon
-          matches=[Match(wm_class="android_studio")],
-          layout="MonadTall",
+          matches=[
+              Match(wm_class="android_studio")
+          ],
+          layout="monadtall",
           screen_affinity=1,
           ),
     Group("5",
-          label="󰅱",  # Code Icon
+          #   label="󰅱",  # Code Icon
+          label="󰭹",  # Chat Icon
           matches=[
-              Match(wm_class="obsidian")
+              Match(wm_class="obsidian"),
+              Match(wm_class="slack"),
           ],
           screen_affinity=1,
-          layout="max",
+          layout="monadthreecol",
           ),
     Group("6",
           label="",  # Chrome Icon
           matches=[Match(wm_class="brave-browser")],
-          layout="max",
+          layout="monadtall",
           screen_affinity=0
           ),
     Group("7",
@@ -213,39 +240,6 @@ for i in groups:
         Key([mod, "shift"], i.name, lazy.function(goToGroupAndMoveWindow, i.name),
             desc=f"Move window to group {i.name}"),
     ])
-
-
-layout_theme = dict(
-    margin="15",
-    border_width=3
-)
-
-
-layouts = [
-    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
-    #    layout.Max(
-    #        border_focus=colors["highlight"],
-    #        ratio=layout_theme["ratio"],
-    #        margin=layout_theme["margin"],
-    #        border_width=layout_theme["border_width"]
-    #    ),
-    # Try more layouts by unleashing below layouts.
-    # layout.Stack(num_stacks=2),
-    # layout.Bsp(),
-    # layout.Matrix(),
-    layout.MonadTall(
-        border_focus=colors["accent"],
-        #        ratio=layout_theme["ratio"],
-        #    margin=layout_theme["margin"],
-        border_width=layout_theme["border_width"]
-    ),
-    # layout.MonadWide(),
-    # layout.RatioTile(),
-    # layout.Tile(),
-    # layout.TreeTab(),
-    # layout.VerticalTile(),
-    # layout.Zoomy(),
-]
 
 widget_defaults = dict(
     font="FiraCode Nerd Font",
