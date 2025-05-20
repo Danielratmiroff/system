@@ -31,7 +31,9 @@ sys.path.append(
     '/home/daniel/.local/qtile-venv/lib/python3.12.3/site-packages')
 
 
-mod = "mod1"
+# mod = "mod4" # OS key
+mod = "mod1"  # Alt key
+# mod = "space"
 terminal = guess_terminal()
 main_screen_groups = "12345"
 
