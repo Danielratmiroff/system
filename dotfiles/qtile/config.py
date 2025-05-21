@@ -50,7 +50,7 @@ def move_starting_windows(window):
 def autostart():
     home = os.path.expanduser('~/.config/qtile/autostart.sh')
     subprocess.Popen([home])
-    move_starting_windows
+    # move_starting_windows
 
 
 colors = {
