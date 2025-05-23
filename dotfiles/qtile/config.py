@@ -155,7 +155,7 @@ groups = [
           #   label="󰅱",  # Code Icon
           label="",  # Linux
           matches=[
-              Match(wm_class="wezterm"),
+          #Match(wm_class="wezterm"),
           ],
           layout="monadtall",
           screen_affinity=1,
