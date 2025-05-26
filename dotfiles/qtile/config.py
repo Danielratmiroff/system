@@ -132,7 +132,7 @@ layout_theme = dict(
 )
 
 layouts = [
-    layout.Max(),
+    #layout.Max(),
     layout.MonadTall(
         border_focus=colors["accent"],
         #        ratio=layout_theme["ratio"],

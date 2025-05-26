@@ -32,7 +32,7 @@
         - fzf # Fuzzy finder
         - pipx # Python package manager
         - python3-pip # Python package manager
-        - py
+        - restic # Backup manager
 
         # Gnome configuration
         - gnome-tweaks # Gnome settings
