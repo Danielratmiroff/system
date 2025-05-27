@@ -1,0 +1,164 @@
+---
+- name: Configure automated backups with gcloud and restic
+  hosts: all
+  gather_facts: true
+  vars_prompt:
+    - name: gcloud_project_id
+      prompt: "Enter the Google Cloud project ID"
+      default: "{{ lookup('env', 'GOOGLE_BACKUP_PROJECT_ID') }}"
+      private: false
+
+    - name: gcloud_bucket_name
+      prompt: "Enter the Google Cloud Storage bucket name for backups"
+      default: "{{ lookup('env', 'GOOGLE_BACKUP_BUCKET_NAME') }}"
+      private: false
+
+    - name: restic_password_file
+      prompt: "Enter the absolute path to the restic password file"
+      default: "{{ lookup('env', 'RESTIC_PASSWORD_FILE') }}"
+      private: false
+
+    - name: restic_repo_bucket_path
+      prompt: "Enter the repository path within the GCS bucket (e.g., 'backups')"
+      default: "backups"
+      private: false
+
+    - name: path_to_backup
+      prompt: "Enter the absolute path to the folder to backup (e.g., /etc, /var/www)"
+      default: "~"
+      private: false
+
+  vars:
+    restic_repository_url: "gs:{{ gcloud_bucket_name }}:/{{ restic_repo_bucket_path }}"
+    # For gcloud commands, better to use environment variables or direct flags if possible
+    # rather than gcloud config set project globally.
+    # However, for simplicity with restic's gs backend, setting the project might be needed
+    # if the SA key doesn't inherently belong to that project or if gsutil used by restic needs it.
+
+  pre_tasks:
+    - name: "BLOCK: Pre-flight checks"
+      tags:
+        - always
+      block:
+        - name: Ensure restic password file exists
+          stat:
+            path: "{{ restic_password_file | expanduser }}"
+          register: restic_pw_file_stat
+          become: false
+
+        - name: Fail if restic password file does not exist
+          fail:
+            msg: "Restic password file not found at {{ restic_password_file | expanduser }}. Please create it."
+          when: not restic_pw_file_stat.stat.exists
+
+  tasks:
+    - name: "BLOCK: Install Dependencies"
+      block:
+        - name: Install gcloud SDK
+          apt:
+            name: google-cloud-sdk
+            state: present
+            update_cache: true
+          become: true
+          register: apt_gcloud
+
+        - name: Install restic
+          apt:
+            name: restic
+            state: present
+            update_cache: true
+          become: true
+          register: apt_restic
+
+    - name: "BLOCK: Configure gcloud and Restic"
+      tags:
+        - configure
+      block:
+        - name: Authenticate to Google Cloud with Service Account
+          command: >
+            gcloud auth activate-service-account --key-file {{ gcloud_service_account_key_file | expanduser }}
+          become: false
+          changed_when: true
+
+        - name: Check if restic repository is initialized
+          command:
+            cmd: "restic -r {{ restic_repository_url }} cat config"
+          environment:
+            RESTIC_PASSWORD_FILE: "{{ restic_password_file | expanduser }}"
+            GOOGLE_PROJECT_ID: "{{ gcloud_project_id }}" # TODO: migrate to environment variable
+          register: restic_check_repo_config
+          changed_when: false
+          failed_when: false
+          become: false
+
+        - name: Initialize restic repository if not already initialized
+          command: 
+            cmd: "restic -r {{ restic_repository_url }} init"
+          environment:
+            RESTIC_PASSWORD_FILE: "{{ restic_password_file | expanduser }}"
+            GOOGLE_PROJECT_ID: "{{ gcloud_project_id }}"
+          when: restic_check_repo_config.rc != 0
+          register: restic_init_result
+          changed_when: "'created restic repository' in restic_init_result.stdout"
+          become: false
+
+# TODO: continue here
+
+    - name: "BLOCK: Perform Backup"
+      tags:
+        - backup
+      block:
+        - name: Backup the folder with restic
+          command:
+            cmd: "restic -r {{ restic_repository_url }} backup {{ path_to_backup }}"
+          environment:
+            RESTIC_PASSWORD_FILE: "{{ restic_password_file | expanduser }}"
+            GOOGLE_PROJECT_ID: "{{ gcloud_project_id }}"
+          register: restic_backup_result
+          changed_when: >
+            'files new' in restic_backup_result.stdout or
+            'dirs new' in restic_backup_result.stdout or
+            ('snapshot ' in restic_backup_result.stdout and 'unchanged' not in restic_backup_result.stdout)
+          failed_when: restic_backup_result.rc != 0 and 'Fatal: unable to open config file' not in restic_backup_result.stderr
+          become: false
+
+    # Add these tasks to a separate playbook or run them less frequently
+    - name: "BLOCK: Maintain Restic Repository (Optional - Run Periodically)"
+      tags:
+        - maintenance
+        - never # By default, don't run maintenance with main backup
+      block:
+        - name: Get list of snapshots (for changed_when logic, or just run forget)
+          command: "restic -r {{ restic_repository_url }} snapshots"
+          environment:
+            RESTIC_PASSWORD_FILE: "{{ restic_password_file | expanduser }}"
+            GOOGLE_PROJECT_ID: "{{ gcloud_project_id }}"
+          register: restic_snapshots_before_forget
+          changed_when: false
+          become: false
+
+        - name: Forget old snapshots (example: keep last 7 daily, 4 weekly, 6 monthly)
+          command: >
+            restic -r {{ restic_repository_url }} forget
+            --keep-daily 7
+            --keep-weekly 4
+            --keep-monthly 6
+            --prune
+          environment:
+            RESTIC_PASSWORD_FILE: "{{ restic_password_file | expanduser }}"
+            GOOGLE_PROJECT_ID: "{{ gcloud_project_id }}"
+          register: restic_forget_result
+          # This changed_when is tricky; it changes if snapshots are removed.
+          # Compare snapshot list before and after or check output for "removed" / "kept".
+          changed_when: "'Applying policy:' in restic_forget_result.stdout and ('removed' in restic_forget_result.stdout or 'compacted' in restic_forget_result.stdout)"
+          become: false
+
+        - name: Check restic repository integrity
+          command: "restic -r {{ restic_repository_url }} check"
+          environment:
+            RESTIC_PASSWORD_FILE: "{{ restic_password_file | expanduser }}"
+            GOOGLE_PROJECT_ID: "{{ gcloud_project_id }}"
+          register: restic_check_result
+          changed_when: false # Check doesn't change configuration
+          failed_when: restic_check_result.rc != 0
+          become: false
