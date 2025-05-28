@@ -1,0 +1,32 @@
+---
+- name: Scheduling CronJob to create backup ssh keys
+  hosts: all
+  vars:
+    # Schedule
+    minute: "30"
+    hour: "10"
+    day: "*"
+    month: "*"
+    weekday: "*"
+
+    # Paths
+    ssh_dir: "{{ ansible_env.HOME }}/.ssh"
+    backup_dir: "{{ ansible_env.HOME }}/system/backup/"
+
+  tasks:
+    - name: Create backup dir if not exists
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: 0700
+
+    - name: "Schedule at: Weekdays: {{ weekday }}, Time: {{ hour }}:{{ minute }}}"
+      cron:
+        name: "ssh_backup"
+        state: present
+        minute: "{{ minute }}"
+        hour: "{{ hour }}"
+        day: "{{ day }}"
+        month: "{{ month }}"
+        weekday: "{{ weekday }}"
+        job: "/bin/cp -r {{ ssh_dir }} {{ backup_dir }} >> {{ ansible_env.HOME }}/system/logs/ssh_backup.log 2>&1"
