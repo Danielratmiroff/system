@@ -32,6 +32,7 @@
         - fzf # Fuzzy finder
         - pipx # Python package manager
         - python3-pip # Python package manager
+        - ncdu # Disk usage / space
         - restic # Backup manager
 
         # Gnome configuration
