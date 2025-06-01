@@ -189,8 +189,8 @@ main() {
     prompt_with_default "Enter the Google Cloud Storage bucket name for backups" "${GOOGLE_BACKUP_BUCKET_NAME:-}" "GCLOUD_BUCKET_NAME"
     prompt_with_default "Enter the absolute path to the Google Cloud service account key file" "${GOOGLE_APPLICATION_CREDENTIALS:-}" "GCLOUD_SERVICE_ACCOUNT_KEY_FILE"
     prompt_with_default "Enter the absolute path to the restic password file" "${RESTIC_PASSWORD_FILE:-}" "RESTIC_PASSWORD_FILE"
-    prompt_with_default "Enter the repository path within the GCS bucket" "backups" "RESTIC_REPO_BUCKET_PATH"
-    prompt_with_default "Enter the absolute path to the folder to backup" "~" "PATH_TO_BACKUP"
+    prompt_with_default "Enter the repository path within the GCS bucket" "${RESTIC_REPO_BUCKET_PATH:-backups}" "RESTIC_REPO_BUCKET_PATH"
+    prompt_with_default "Enter the absolute path to the folder to backup" "${RESTIC_PATH_TO_BACKUP:-~}" "RESTIC_PATH_TO_BACKUP"
 
     # Set derived variables
     RESTIC_REPOSITORY_URL="gs:${GCLOUD_BUCKET_NAME}:/${RESTIC_REPO_BUCKET_PATH}"

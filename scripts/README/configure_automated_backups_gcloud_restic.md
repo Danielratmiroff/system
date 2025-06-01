@@ -89,14 +89,4 @@ The script will prompt for the following parameters:
 
 ## Automation
 
-To run this script automatically, you can set up a cron job:
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add entry to run daily at 2 AM
-0 2 * * * /path/to/configure_automated_backups_gcloud_restic.sh backup
-```
-
-For automated runs, ensure all environment variables are set properly in your shell profile or systemd environment.
+To run this script automatically, you can use the cronjob_create_automated_restic_backup_in_googlecloud.yaml playbook.

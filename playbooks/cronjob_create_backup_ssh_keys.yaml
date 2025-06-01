@@ -12,21 +12,36 @@
     # Paths
     ssh_dir: "{{ ansible_env.HOME }}/.ssh"
     backup_dir: "{{ ansible_env.HOME }}/system/backup/"
+    log_file: "{{ ansible_env.HOME }}/system/logs/ssh_backup.log"
 
   tasks:
-  - name: Create backup dir if not exists
-    file:
-      path: "{{ backup_dir }}"
-      state: directory
-      mode: 0700
+    - name: Create backup dir if not exists
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0700"
 
-  - name: "Schedule at: Weekdays: {{ weekday }}, Time: {{ hour }}:{{ minute }}}"
-    cron:
-      name: "ssh_backup"
-      state: present
-      minute: "{{ minute }}"
-      hour: "{{ hour }}"
-      day: "{{ day }}"
-      month: "{{ month }}"
-      weekday: "{{ weekday }}"
-      job: "/bin/cp -r {{ ssh_dir }} {{ backup_dir }} >> {{ ansible_env.HOME }}/system/logs/ssh_backup.log 2>&1"
+    - name: Create log directory if not exists
+      file:
+        path: "{{ ansible_env.HOME }}/system/logs"
+        state: directory
+        mode: "0750"
+
+    - name: Schedule SSH backup cron job
+      cron:
+        name: "ssh_backup"
+        state: present
+        minute: "{{ minute }}"
+        hour: "{{ hour }}"
+        day: "{{ day }}"
+        month: "{{ month }}"
+        weekday: "{{ weekday }}"
+        job: "/bin/cp -r {{ ssh_dir }} {{ backup_dir }} >> {{ log_file }} 2>&1"
+
+    - name: Display scheduled backup information
+      debug:
+        msg:
+          - "SSH backup scheduled successfully!"
+          - "Source: {{ ssh_dir }}"
+          - "Destination: {{ backup_dir }}"
+          - "Logs: {{ log_file }}"
