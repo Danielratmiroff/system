@@ -1,0 +1,20 @@
+---
+- name: Ensure .config/espanso directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.config/espanso/match"
+    state: directory
+    mode: "0755"
+
+- name: Find all files in Espanso directory
+  find:
+    paths: "{{ ansible_env.HOME }}/automation/dotfiles/espanso/match"
+    file_type: file
+  register: espanso_files
+
+- name: Create symlinks for all Espanso files
+  file:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_env.HOME }}/.config/espanso/match/{{ item.path | basename }}"
+    state: link
+    force: true
+  loop: "{{ espanso_files.files }}"

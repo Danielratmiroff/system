@@ -17,3 +17,7 @@
     - name: Include Wezterm symlink tasks
       include_tasks:
         file: tasks/create_wezterm_symlink.yaml
+
+    - name: Include Espanso symlink tasks
+      include_tasks:
+        file: tasks/create_espanso_symlink.yaml
