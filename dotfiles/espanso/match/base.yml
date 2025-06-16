@@ -18,5 +18,8 @@ matches:
         params:
           cmd: "echo 'Hello from your shell'"
 
-  - trigger: ":mr"
+  - trigger: ":mr1"
     replace: "Hey team, can you please review this, when you have a chance? 🕵️"
+
+  - trigger: ":mr2"
+    replace: "Hey team, please take a look at this MR when possible? 🔎"
