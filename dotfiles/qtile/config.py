@@ -154,9 +154,7 @@ groups = [
           #   label="󰭹",  # Chat Icon
           #   label="󰅱",  # Code Icon
           label="",  # Linux
-          matches=[
-          #Match(wm_class="wezterm"),
-          ],
+          matches=[Match(wm_class="org.wezfurlong.wezterm")],
           layout="monadtall",
           screen_affinity=1,
           ),
