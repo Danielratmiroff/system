@@ -22,4 +22,7 @@ matches:
     replace: "Hey team, can you please review this, when you have a chance? 🕵️"
 
   - trigger: ":mr2"
-    replace: "Hey team, please take a look at this MR when possible? 🔎"
+    replace: "Hey team, please take a look at this MR when possible 🔎"
+
+  - trigger: ":mr3"
+    replace: "Hey team, please take some time to review this MR 🙂"
