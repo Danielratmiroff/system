@@ -38,12 +38,12 @@ terminal = guess_terminal()
 main_screen_groups = "12345"
 
 
-@hook.subscribe.client_new
-def move_starting_windows(window):
-    if window.name == "cursor":
-        window.togroup("3", switch_group=False)
-    if window.name == "wezterm":
-        window.togroup("2", switch_group=False)
+# @hook.subscribe.client_new
+# def move_starting_windows(window):
+#     if window.name == "cursor":
+#         window.togroup("3", switch_group=False)
+#     if window.name == "wezterm":
+#         window.togroup("2", switch_group=False)
 
 
 @hook.subscribe.startup_once
@@ -132,7 +132,7 @@ layout_theme = dict(
 )
 
 layouts = [
-    #layout.Max(),
+    # layout.Max(),
     layout.MonadTall(
         border_focus=colors["accent"],
         #        ratio=layout_theme["ratio"],
@@ -154,7 +154,8 @@ groups = [
           #   label="󰭹",  # Chat Icon
           #   label="󰅱",  # Code Icon
           label="",  # Linux
-          matches=[Match(wm_class="org.wezfurlong.wezterm")],
+          matches=[Match(wm_class="org.wezfurlong.wezterm"),
+                   Match(wm_class="wezterm")],
           layout="monadtall",
           screen_affinity=1,
           ),
