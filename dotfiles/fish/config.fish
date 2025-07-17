@@ -93,6 +93,10 @@ function sonar
 end
 
 
+function tm
+    task-master $argv
+end
+
 # Not idle
 function idle
     sh $HOME/automation/avoid_idle_time.sh
