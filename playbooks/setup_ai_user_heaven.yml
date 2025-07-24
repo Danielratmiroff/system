@@ -1,0 +1,176 @@
+---
+# Filename: setup_ai_heaven.yml
+#
+# Ansible Playbook to create a sandboxed "ai_heaven" user environment.
+#
+# This playbook will:
+# 1. Install Firejail
+# 2. Create a dedicated user named 'ai_heaven'.
+# 3. Enable automatic firejail sandboxing.
+# 4. Lock the 'ai_heaven' user's password for security.
+
+- name: Configure Sandboxed AI Heaven Environment
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    nvm_version: "0.39.1"
+    node_version: "22.10.0"
+    ai_user: "ai_heaven"
+
+  tasks:
+    - name: Setup Environment
+      become: true
+      block:
+        - name: Ensure prerequisites are installed
+          apt:
+            name: software-properties-common
+            state: present
+            update_cache: true
+
+        - name: Add Firejail PPA for the latest version
+          apt_repository:
+            repo: ppa:deki/firejail
+            state: present
+            update_cache: true
+
+        - name: Install Firejail and profiles
+          apt:
+            name:
+              - firejail
+              - firejail-profiles
+            state: present
+            update_cache: true
+
+        - name: Create the 'ai' user
+          user:
+            name: "{{ ai_user }}"
+            comment: "Sandboxed AI Development User"
+            shell: /bin/bash
+            create_home: true
+            state: present
+
+        - name: Ensure 'ai' user is sandboxed via firejail.users
+          lineinfile:
+            path: /etc/firejail/firejail.users
+            line: "{{ ai_user }}"
+            create: true
+            owner: root
+            group: root
+            mode: "0644"
+            state: present
+
+        - name: Lock the 'ai' user password for security
+          user:
+            name: "{{ ai_user }}"
+            password_lock: true
+
+        - name: Allow access to display
+          command: xhost +SI:localuser:{{ ai_user }}
+          changed_when: false
+
+        - name: Add display to .bash_aliases
+          lineinfile:
+            path: /home/{{ ai_user }}/.bash_aliases
+            line: "export DISPLAY=:0"
+            create: true
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0644"
+
+    - name: Install Packages and NVM
+      become: true
+      become_user: "{{ ai_user }}"
+      block:
+        - name: Install NVM (Node Version Manager)
+          get_url:
+            url: https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh
+            dest: /home/{{ ai_user }}/.nvm/install.sh
+            mode: "0755"
+
+        - name: Install NVM
+          command: bash /home/{{ ai_user }}/.nvm/install.sh
+          args:
+            creates: /home/{{ ai_user }}/.nvm
+
+        - name: Install Node.js
+          command: nvm install "{{ node_version }}"
+          args:
+            creates: /home/{{ ai_user }}/.nvm/versions/node/v{{ node_version }}
+
+    - name: Install Cursor AppImage
+      become: true
+      block:
+        - name: Ensure Applications directory exists for ai_user
+          file:
+            path: "/home/{{ ai_user }}/applications"
+            state: directory
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0755"
+
+        - name: Copy Cursor AppImage to Applications
+          copy:
+            src: "/home/daniel/automation/appimages/apps/cursor.AppImage"
+            dest: "/home/{{ ai_user }}/Applications/cursor.AppImage"
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0755"
+            remote_src: true
+
+        - name: Add alias for cursor command in .bash_aliases
+          lineinfile:
+            path: "/home/{{ ai_user }}/.bash_aliases"
+            line: "alias cursor='~/Applications/cursor.AppImage'"
+            create: true
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0644"
+
+        - name: Copy cursor configuration
+          copy:
+            src: "/home/daniel/.cursor"
+            dest: "/home/{{ ai_user }}/"
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0755"
+            remote_src: true
+
+        - name: Copy Cursor configuration
+          copy:
+            src: "/home/daniel/.config/Cursor/User"
+            dest: "/home/{{ ai_user }}/.config/Cursor/"
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0755"
+            remote_src: true
+            force: true
+
+        - name: Add Gemini CLI alias to .bash_aliases
+          lineinfile:
+            path: "/home/{{ ai_user }}/.bash_aliases"
+            line: "alias gemini='npx -y https://github.com/google-gemini/gemini-cli'"
+            create: true
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0644"
+
+        - name: Ensure .bash_aliases is sourced from .bashrc
+          lineinfile:
+            path: "/home/{{ ai_user }}/.bashrc"
+            regex: '^\[ -f ~/.bash_aliases \] && \\. ~/.bash_aliases$'
+            line: "[ -f ~/.bash_aliases ] && . ~/.bash_aliases"
+            create: true
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0644"
+
+        - name: Create .env example file
+          copy:
+            dest: "/home/{{ ai_user }}/.env.example"
+            owner: "{{ ai_user }}"
+            group: "{{ ai_user }}"
+            mode: "0644"
+            content: |
+              GEMINI_API_KEY=""
+              SDUI_GITLAB_TOKEN=""
