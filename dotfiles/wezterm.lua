@@ -25,7 +25,8 @@ config.initial_cols = 180
 
 -- Directory-specific background colors
 local dir_to_color = {
-	["/home/daniel"] = { background = "#2f0000" },  
+	["/home/daniel"] = { background = "#550000" },  
+	["/home/ai_heaven"] = { background = "#025f73" },  
 	["/home/daniel/code/bavaria-matrix-react-sdk"] = { background = "#1a1a1a" },  
 	["/home/daniel/code/bycs-messenger-android"] = { background = "#1a1a1a" }, 
 }
