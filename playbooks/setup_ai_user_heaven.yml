@@ -17,6 +17,7 @@
     nvm_version: "0.39.1"
     node_version: "22.10.0"
     ai_user: "ai_heaven"
+    home_user: "daniel"
 
   tasks:
     - name: Setup Environment
@@ -78,18 +79,17 @@
             group: "{{ ai_user }}"
             mode: "0644"
 
-    - name: Install Packages and NVM
+    #########################################################
+    # Logged in as AI user
+    #########################################################
+
+    - name: Install Packages NVM, Node.js, and UV
       become: true
       become_user: "{{ ai_user }}"
       block:
         - name: Install NVM (Node Version Manager)
-          get_url:
-            url: https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh
-            dest: /home/{{ ai_user }}/.nvm/install.sh
-            mode: "0755"
-
-        - name: Install NVM
-          command: bash /home/{{ ai_user }}/.nvm/install.sh
+          shell: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh | bash
           args:
             creates: /home/{{ ai_user }}/.nvm
 
@@ -98,6 +98,15 @@
           args:
             creates: /home/{{ ai_user }}/.nvm/versions/node/v{{ node_version }}
 
+        - name: Install UV (Python Package Manager)
+          shell: |
+            pipx install uv
+          args:
+            creates: /home/{{ ai_user }}/.local/bin/uv
+
+    #########################################################
+    # Logged in as SUDO user
+    #########################################################
     - name: Install Cursor AppImage
       become: true
       block:
@@ -111,7 +120,7 @@
 
         - name: Copy Cursor AppImage to Applications
           copy:
-            src: "/home/daniel/automation/appimages/apps/cursor.AppImage"
+            src: "/home/{{ home_user }}/automation/appimages/apps/cursor.AppImage"
             dest: "/home/{{ ai_user }}/Applications/cursor.AppImage"
             owner: "{{ ai_user }}"
             group: "{{ ai_user }}"
@@ -129,7 +138,7 @@
 
         - name: Copy cursor configuration
           copy:
-            src: "/home/daniel/.cursor"
+            src: "/home/{{ home_user }}/automation/appimages/apps/cursor.AppImage"
             dest: "/home/{{ ai_user }}/"
             owner: "{{ ai_user }}"
             group: "{{ ai_user }}"
@@ -138,7 +147,7 @@
 
         - name: Copy Cursor configuration
           copy:
-            src: "/home/daniel/.config/Cursor/User"
+            src: "/home/{{ home_user }}/.config/Cursor/User"
             dest: "/home/{{ ai_user }}/.config/Cursor/"
             owner: "{{ ai_user }}"
             group: "{{ ai_user }}"
@@ -174,3 +183,12 @@
             content: |
               GEMINI_API_KEY=""
               SDUI_GITLAB_TOKEN=""
+
+        # - name: Start ssh-agent
+        #   lineinfile:
+        #     path: "/home/{{ ai_user }}/.bashrc"
+        #     line: 'if [ -z "$SSH_AUTH_SOCK" ]; then eval "$(ssh-agent -s)" fi'
+        #     create: true
+        #     owner: "{{ ai_user }}"
+        #     group: "{{ ai_user }}"
+        #     mode: "0644"

@@ -40,7 +40,7 @@ alias cdi 'cd $HOME/code/terminaider/'
 alias cdg 'cd $HOME/code/gai/'
 alias edit 'nv $HOME/automation/dotfiles/fish/config.fish'
 alias term 'nv $HOME/automation/dotfiles/wezterm.lua'
-alias ai 'ollama run gemma3:12b'
+alias ai 'sudo -iu ai_heaven'
 
 # File listing
 alias ls 'eza --icons'
