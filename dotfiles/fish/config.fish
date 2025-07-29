@@ -8,6 +8,8 @@ set -g -x GO111MODULE on
 set -g theme_powerline_fonts no
 set -g JAVA_HOME '/usr/lib/jvm/java-17-openjdk-amd64'
 
+# Add user to xhost
+xhost +SI:localuser:ai_heaven
 
 # -------------------
 # Theme config
