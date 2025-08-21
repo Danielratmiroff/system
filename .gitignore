@@ -2,3 +2,4 @@
 .aider*
 .env
 appimages/apps/*
+.n8n

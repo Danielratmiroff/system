@@ -1,0 +1,357 @@
+{
+  "name": "Automated Backups with Restic to GCS (Hardcoded)",
+  "nodes": [
+    {
+      "id": "manualTrigger1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {}
+    },
+    {
+      "id": "setConstants1",
+      "name": "Set Constants",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [480, 300],
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "gcloudProjectId",
+              "value": "my-project-id"
+            },
+            {
+              "name": "gcloudBucketName",
+              "value": "my-backup-bucket"
+            },
+            {
+              "name": "resticRepoBucketPath",
+              "value": "backups"
+            },
+            {
+              "name": "pathToBackup",
+              "value": "/home/daniel"
+            },
+            {
+              "name": "resticPasswordFile",
+              "value": "/home/daniel/.config/restic/password.txt"
+            },
+            {
+              "name": "gcloudServiceAccountKeyFile",
+              "value": "/home/daniel/.config/gcloud/service-account.json"
+            },
+            {
+              "name": "resticRepositoryUrl",
+              "value": "=gs:{{$json.gcloudBucketName}}:/{{$json.resticRepoBucketPath}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "checkPwFile1",
+      "name": "Check Password File Exists",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [720, 180],
+      "parameters": {
+        "command": "bash -lc 'test -f \"{{$json.resticPasswordFile}}\"'"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "ifPwFile1",
+      "name": "IF Password File OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [960, 180],
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.exitCode}}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "stopMissingPw1",
+      "name": "Stop: Missing Restic Password File",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [1200, 60],
+      "parameters": {
+        "message": "=Restic password file not found at {{$json.resticPasswordFile}}. Please create it."
+      }
+    },
+    {
+      "id": "checkRepo1",
+      "name": "Check Repo Config",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1200, 300],
+      "parameters": {
+        "command": "bash -lc 'RESTIC_PASSWORD_FILE=\"{{$json.resticPasswordFile}}\" GOOGLE_PROJECT_ID=\"{{$json.gcloudProjectId}}\" GOOGLE_APPLICATION_CREDENTIALS=\"{{$json.gcloudServiceAccountKeyFile}}\" restic -r \"{{$json.resticRepositoryUrl}}\" cat config'"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "ifRepoExists1",
+      "name": "IF Repo Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1440, 300],
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.exitCode}}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "initRepo1",
+      "name": "Init Repo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1680, 420],
+      "parameters": {
+        "command": "bash -lc 'RESTIC_PASSWORD_FILE=\"{{$json.resticPasswordFile}}\" GOOGLE_PROJECT_ID=\"{{$json.gcloudProjectId}}\" GOOGLE_APPLICATION_CREDENTIALS=\"{{$json.gcloudServiceAccountKeyFile}}\" restic -r \"{{$json.resticRepositoryUrl}}\" init'"
+      }
+    },
+    {
+      "id": "backup1",
+      "name": "Backup Folder",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1920, 300],
+      "parameters": {
+        "command": "bash -lc 'RESTIC_PASSWORD_FILE=\"{{$json.resticPasswordFile}}\" GOOGLE_PROJECT_ID=\"{{$json.gcloudProjectId}}\" GOOGLE_APPLICATION_CREDENTIALS=\"{{$json.gcloudServiceAccountKeyFile}}\" restic -r \"{{$json.resticRepositoryUrl}}\" backup \"{{$json.pathToBackup}}\"'"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "ifBackupOk1",
+      "name": "IF Backup OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2160, 300],
+      "parameters": {
+        "combineOperation": "any",
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.exitCode}}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ],
+          "string": [
+            {
+              "value1": "={{$json.stderr}}",
+              "operation": "contains",
+              "value2": "Fatal: unable to open config file"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "stopBackupFail1",
+      "name": "Stop: Backup Failed",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [2400, 120],
+      "parameters": {
+        "message": "=Backup failed. Exit code {{$json.exitCode}}. Stderr: {{$json.stderr}}"
+      }
+    },
+    {
+      "id": "snapshots1",
+      "name": "List Snapshots",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2400, 300],
+      "parameters": {
+        "command": "bash -lc 'RESTIC_PASSWORD_FILE=\"{{$json.resticPasswordFile}}\" GOOGLE_PROJECT_ID=\"{{$json.gcloudProjectId}}\" GOOGLE_APPLICATION_CREDENTIALS=\"{{$json.gcloudServiceAccountKeyFile}}\" restic -r \"{{$json.resticRepositoryUrl}}\" snapshots'"
+      }
+    },
+    {
+      "id": "forget1",
+      "name": "Forget Old Snapshots",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2640, 300],
+      "parameters": {
+        "command": "bash -lc 'RESTIC_PASSWORD_FILE=\"{{$json.resticPasswordFile}}\" GOOGLE_PROJECT_ID=\"{{$json.gcloudProjectId}}\" GOOGLE_APPLICATION_CREDENTIALS=\"{{$json.gcloudServiceAccountKeyFile}}\" restic -r \"{{$json.resticRepositoryUrl}}\" forget --keep-yearly 3 --prune'"
+      }
+    },
+    {
+      "id": "checkRepoIntegrity1",
+      "name": "Check Repo Integrity",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2880, 300],
+      "parameters": {
+        "command": "bash -lc 'RESTIC_PASSWORD_FILE=\"{{$json.resticPasswordFile}}\" GOOGLE_PROJECT_ID=\"{{$json.gcloudProjectId}}\" GOOGLE_APPLICATION_CREDENTIALS=\"{{$json.gcloudServiceAccountKeyFile}}\" restic -r \"{{$json.resticRepositoryUrl}}\" check'"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Constants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Constants": {
+      "main": [
+        [
+          {
+            "node": "Check Password File Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Password File Exists": {
+      "main": [
+        [
+          {
+            "node": "IF Password File OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Password File OK": {
+      "main": [
+        [
+          {
+            "node": "Check Repo Config",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop: Missing Restic Password File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Repo Config": {
+      "main": [
+        [
+          {
+            "node": "IF Repo Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Repo Exists": {
+      "main": [
+        [
+          {
+            "node": "Backup Folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Init Repo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Repo": {
+      "main": [
+        [
+          {
+            "node": "Backup Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Backup Folder": {
+      "main": [
+        [
+          {
+            "node": "IF Backup OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Backup OK": {
+      "main": [
+        [
+          {
+            "node": "List Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop: Backup Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Forget Old Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forget Old Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Check Repo Integrity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  }
+}
