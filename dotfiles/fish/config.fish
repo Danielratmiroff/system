@@ -77,7 +77,7 @@ kubectl completion fish | source
 
 # Git
 alias g='git'
-alias ga='git add .'
+alias ga='git add -A'
 alias gc='git commit -m '
 alias gp='git push origin '
 alias gt='git tag -a '
@@ -119,7 +119,8 @@ function gch
 end
 
 function gac
-    git commit -am "$argv"
+    git add -A
+    git commit -m "$argv"
 end
 
 function gcp
@@ -127,12 +128,13 @@ function gcp
 end
 
 function gacp
-    git commit -am "$argv" && git push origin
+    git add -A
+    git commit -m "$argv" && git push origin
 end
 
 function clean_gitignore
     git rm -r --cached .
-    git add .
+    git add -A
     git commit -m ".gitignore is now working"
     echo "## Deleted git cache and committed the changes"
 end
