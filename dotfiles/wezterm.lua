@@ -148,12 +148,11 @@ wezterm.on("update-status", function(window, pane)
 	window:set_right_status(wezterm.format(elements))
 end)
 
-config.keys = {
-	{
+config.keys = {{
 		key = "q",
 		mods = "ALT",
 		action = act.QuitApplication,
-	},
+  {key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}},},
 	{
 		key = "1",
 		mods = "CTRL",
@@ -237,7 +236,8 @@ config.keys = {
 		key = "PageDown",
 		mods = "CTRL",
 		action = act.ActivateTabRelative(1),
-	}, -- Floating panes (not implemented yet)
+	}
+  -- Floating panes (not implemented yet)
 	-- bind "Alt w" { ToggleFloatingPanes; }
 	-- bind "Alt e" { TogglePaneEmbedOrFloating; }
 	-- bind "Alt b" { MovePaneBackwards; }
