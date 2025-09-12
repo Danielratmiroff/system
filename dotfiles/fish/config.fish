@@ -6,7 +6,7 @@ source $HOME/automation/.secrets
 set -g -x fish_greeting ''
 set -g -x GO111MODULE on
 set -g theme_powerline_fonts no
-set -g JAVA_HOME '/usr/lib/jvm/java-17-openjdk-amd64'
+set -g JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
 
 # Add user to xhost
 xhost +SI:localuser:ai_heaven
@@ -82,6 +82,8 @@ alias gc='git commit -m '
 alias gp='git push origin '
 alias gt='git tag -a '
 
+# abbr -a gch 'git checkout'
+
 # Play
 alias gobuild='go build -o termi'
 
@@ -94,22 +96,16 @@ function sonar
     ./gradlew sonar
 end
 
-
-function tm
-    task-master $argv
-end
-
-# Not idle
-function idle
-    sh $HOME/automation/avoid_idle_time.sh
+function cw --wraps=claude-wt --description 'alias cw=claude-wt'
+    command claude-wt $argv
 end
 
 # Ansible
-function ap
+function ap --wraps=ansible-playbook --description 'alias ap=ansible-playbook'
     ansible-playbook $HOME/automation/$argv
 end
 
-function sap
+function sap --wraps=ansible-playbook --description 'alias sap=ansible-playbook -K'
     ansible-playbook -K $HOME/automation/$argv
 end
 
@@ -117,11 +113,18 @@ end
 function gch
     git checkout $argv
 end
+complete --wraps='git checkout' gch
+
+function ga
+    git add -A
+end
+complete --wraps='git add -A' ga
 
 function gac
     git add -A
     git commit -m "$argv"
 end
+
 
 function gcp
     git commit -m "$argv" && git push origin
@@ -321,6 +324,6 @@ end
 # pnpm
 set -gx PNPM_HOME "/home/daniel/.local/share/pnpm"
 if not string match -q -- $PNPM_HOME $PATH
-  set -gx PATH "$PNPM_HOME" $PATH
+    set -gx PATH "$PNPM_HOME" $PATH
 end
 # pnpm end
