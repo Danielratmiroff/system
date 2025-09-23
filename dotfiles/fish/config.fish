@@ -24,6 +24,7 @@ alias nv nvim
 alias vim nvim
 
 alias cursor '$HOME/automation/appimages/apps/cursor*AppImage'
+alias cursorcli 'cursor-agent'
 #alias fd (which fdfind)
 
 
