@@ -7,6 +7,7 @@ set -g -x fish_greeting ''
 set -g -x GO111MODULE on
 set -g theme_powerline_fonts no
 set -g JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
+set -g EDITOR vim
 
 # Add user to xhost
 xhost +SI:localuser:ai_heaven
@@ -111,6 +112,11 @@ function sap --wraps=ansible-playbook --description 'alias sap=ansible-playbook 
 end
 
 # Git
+function gl
+    glab $argv
+end
+complete --wraps='glab' gl
+
 function gch
     git checkout $argv
 end
