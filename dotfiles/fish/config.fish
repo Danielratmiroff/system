@@ -185,6 +185,10 @@ function mkcd
     cd $argv
 end
 
+function ecopy
+  echo "$argv" | copy
+end
+
 function copy
     xclip -selection clipboard
 end
