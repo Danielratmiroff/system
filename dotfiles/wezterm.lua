@@ -29,6 +29,8 @@ local dir_to_color = {
 	["/home/ai_heaven"] = { background = "#025f73" },  
 	["/home/daniel/code/bavaria-matrix-react-sdk"] = { background = "#1a1a1a" },  
 	["/home/daniel/code/bycs-messenger-android"] = { background = "#1a1a1a" }, 
+	["/home/daniel/code/keycloakify-projects/keycloakify-starter"] = { background = "#771949" }, 
+	["/home/daniel/code/keycloakify-projects/keycloak-theme-pupil"] = { background = "#025f73" } 
 }
 
 local TITLEBAR_COLOR = "#333333"
@@ -148,11 +150,17 @@ wezterm.on("update-status", function(window, pane)
 	window:set_right_status(wezterm.format(elements))
 end)
 
-config.keys = {{
+config.keys = {
+	{
 		key = "q",
 		mods = "ALT",
 		action = act.QuitApplication,
-  {key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}},},
+	},
+	{
+		key = "Enter",
+		mods = "SHIFT",
+		action = wezterm.action{SendString="\x1b\r"}
+	},
 	{
 		key = "1",
 		mods = "CTRL",
@@ -246,3 +254,4 @@ config.keys = {{
 }
 
 return config
+
