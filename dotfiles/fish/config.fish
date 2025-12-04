@@ -118,6 +118,10 @@ function gl
 end
 complete --wraps='glab' gl
 
+function gchm
+    git fetch origin master && git checkout -b $argv[1] origin/master
+end
+
 function gch
     git checkout $argv
 end
