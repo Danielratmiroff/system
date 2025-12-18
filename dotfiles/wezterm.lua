@@ -151,12 +151,12 @@ wezterm.on("update-status", function(window, pane)
 end)
 
 config.keys = {
-	{
+  {
 		key = "q",
 		mods = "ALT",
 		action = act.QuitApplication,
-	},
-	{
+  },
+  {
 		key = "Enter",
 		mods = "SHIFT",
 		action = wezterm.action{SendString="\x1b\r"}
