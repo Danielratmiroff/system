@@ -41,10 +41,10 @@ alias dot 'cd $HOME/automation/dotfiles/'
 alias cdd 'cd $HOME/code/bycs-messenger-android/'
 alias cdk 'cd $HOME/code/keycloakify-projects/'
 alias cds 'cd $HOME/.ssh/'
-alias cdi 'cd $HOME/code/terminaider/'
-alias cdg 'cd $HOME/code/gai/'
+alias cdt 'cd $HOME/code/tududi/'
 alias edit 'nv $HOME/automation/dotfiles/fish/config.fish'
 alias term 'nv $HOME/automation/dotfiles/wezterm.lua'
+alias hotk 'nv $HOME/automation/dotfiles/qtile/config.py'
 alias ai 'sudo -iu ai_heaven'
 
 # File listing
@@ -228,6 +228,19 @@ function android_studio
     end
 end
 
+function killport
+    if test (count $argv) -eq 0
+        echo "Usage: killport <port>"
+        return 1
+    end
+    set -l pid (lsof -ti:$argv[1])
+    if test -n "$pid"
+        kill -9 $pid
+        echo "Killed process on port $argv[1]"
+    else
+        echo "No process found on port $argv[1]"
+    end
+end
 
 # -------------------
 # Set Path Variable
