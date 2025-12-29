@@ -26,8 +26,7 @@ config.initial_cols = 180
 -- Directory-specific background colors
 local dir_to_color = {
 	["/home/daniel"] = { background = "#550000" },  
-	["/home/ai_heaven"] = { background = "#025f73" },  
-	["/home/daniel/code/bavaria-matrix-react-sdk"] = { background = "#1a1a1a" },  
+["/home/daniel/code/bavaria-matrix-react-sdk"] = { background = "#1a1a1a" },  
 	["/home/daniel/code/bycs-messenger-android"] = { background = "#1a1a1a" }, 
 	["/home/daniel/code/keycloakify-projects/keycloakify-starter"] = { background = "#771949" }, 
 	["/home/daniel/code/keycloakify-projects/keycloak-theme-pupil"] = { background = "#025f73" } 
@@ -74,6 +73,10 @@ config.window_frame = {
 wezterm.on("update-status", function(window, pane)
 	local cells = {}
 
+	-- Detect shell user via user variable (set by fish/bash)
+	local shell_user = pane:get_user_vars().SHELL_USER or ""
+	local is_claude = (shell_user == "claude")
+
 	-- Figure out the hostname of the pane on a best-effort basis
 	local hostname = wezterm.hostname()
 	local cwd_uri = pane:get_current_working_dir()
@@ -81,21 +84,51 @@ wezterm.on("update-status", function(window, pane)
 		hostname = cwd_uri.host
 	end
 
-	-- Get current working directory and update background color if needed
+	-- Check if in claude's directory (for daniel)
+	local in_claude_dir = false
 	if cwd_uri then
 		local path = cwd_uri.file_path or ""
+		in_claude_dir = path:match("^/home/claude") ~= nil
+	end
+
+	-- Styling priority: logged-in-as-claude > in-claude-dir > dir-specific > default
+	if is_claude then
+		window:set_config_overrides({
+			window_background_opacity = 0.85,
+			colors = { background = "#1a1a2e" },
+			window_frame = {
+				active_titlebar_bg = "#2d2d44",
+				inactive_titlebar_bg = "#2d2d44",
+			}
+		})
+	elseif in_claude_dir then
+		window:set_config_overrides({
+			window_background_opacity = 0.85,
+			colors = { background = "#1a1a2e" },
+			window_frame = {
+				active_titlebar_bg = "#2d2d44",
+				inactive_titlebar_bg = "#2d2d44",
+			}
+		})
+	elseif cwd_uri then
+		local path = cwd_uri.file_path or ""
 		local path_without_trailing_slash = path:gsub("/$", "")
-		
-		-- Check if this path matches any of our configured directories
 		local overrides = dir_to_color[path_without_trailing_slash]
 		if overrides then
 			window:set_config_overrides({ window_background_opacity = 0.85, colors = overrides })
 		else
-			-- Reset to default if we don't have a special color for this directory
 			window:set_config_overrides({ window_background_opacity = 0.85 })
 		end
 	end
-	table.insert(cells, " " .. hostname)
+
+	-- Status bar: user indicator
+	if is_claude then
+		table.insert(cells, "◈ claude")
+	elseif in_claude_dir then
+		table.insert(cells, "[claude] " .. hostname)
+	else
+		table.insert(cells, " " .. hostname)
+	end
 
 	-- Format date/time in this style: "Wed Mar 3 08:14"
 	local date = wezterm.strftime(" %a %b %-d %H:%M")

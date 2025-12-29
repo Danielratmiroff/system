@@ -1,0 +1,724 @@
+---
+# Filename: setup_claude_sandbox.yml
+#
+# Ansible Playbook to create a sandboxed "claude" user environment for Claude Code.
+#
+# This playbook will:
+# 1. Install system prerequisites (bubblewrap, apparmor, etc.)
+# 2. Create a dedicated user named 'claude' with proper home directory structure
+# 3. Configure security settings (PAM limits, AppArmor profile)
+# 4. Setup rootless Docker for the claude user
+# 5. Install Node.js (via NVM) and Claude Code
+# 6. Configure X11 display access for GUI applications
+# 7. Configure logging infrastructure for monitoring and reporting
+# 8. Configure Claude Code settings with sandbox restrictions
+
+- name: Configure Sandboxed Claude Code Environment
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    claude_user: "claude"
+    home_user: "daniel"
+    nvm_version: "0.40.0"
+    node_version: "22"
+    log_base: "/var/log/claude-sandbox"
+
+  tasks:
+    #########################################################
+    # Section 1: System Prerequisites
+    #########################################################
+
+    - name: Install System Prerequisites
+      become: true
+      block:
+        - name: Install required packages for sandboxing
+          apt:
+            name:
+              - bubblewrap
+              - uidmap
+              - dbus-user-session
+              - fuse-overlayfs
+              - slirp4netns
+              - apparmor
+              - apparmor-utils
+              - x11-utils
+              - xauth
+              - acl
+              - curl
+              - git
+            state: present
+            update_cache: true
+
+    #########################################################
+    # Section 2: User Creation & Home Directory Setup
+    #########################################################
+
+    - name: Create Claude User and Configure Home Directory
+      become: true
+      block:
+        - name: Create the 'claude' user
+          user:
+            name: "{{ claude_user }}"
+            comment: "Sandboxed Claude Code User"
+            shell: /bin/bash
+            create_home: true
+            groups: audio,video,input,render
+            append: true
+            state: present
+
+        - name: Lock the 'claude' user password for security
+          user:
+            name: "{{ claude_user }}"
+            password_lock: true
+
+        - name: Create .config directory
+          file:
+            path: "/home/{{ claude_user }}/.config"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0700"
+
+        - name: Create .local/bin directory
+          file:
+            path: "/home/{{ claude_user }}/.local/bin"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0755"
+
+        - name: Create .local/share directory
+          file:
+            path: "/home/{{ claude_user }}/.local/share"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0755"
+
+        - name: Create .cache directory
+          file:
+            path: "/home/{{ claude_user }}/.cache"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0700"
+
+        - name: Create workspace directory
+          file:
+            path: "/home/{{ claude_user }}/workspace"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0755"
+
+        - name: Create projects directory
+          file:
+            path: "/home/{{ claude_user }}/projects"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0755"
+
+        - name: Create Downloads directory
+          file:
+            path: "/home/{{ claude_user }}/Downloads"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0755"
+
+        - name: Deploy .bashrc configuration
+          copy:
+            dest: "/home/{{ claude_user }}/.bashrc"
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0644"
+            content: |
+              # ~/.bashrc: executed by bash(1) for non-login shells.
+
+              # XDG Runtime Directory (required for rootless Docker and user services)
+              # Set BEFORE interactive check - needed for non-interactive shells too
+              if [ -z "$XDG_RUNTIME_DIR" ]; then
+                  export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+              fi
+
+              # If not running interactively, don't do anything else
+              case $- in
+                  *i*) ;;
+                    *) return;;
+              esac
+
+              # XDG Base Directory Specification
+              export XDG_CONFIG_HOME="$HOME/.config"
+              export XDG_DATA_HOME="$HOME/.local/share"
+              export XDG_CACHE_HOME="$HOME/.cache"
+              export XDG_STATE_HOME="$HOME/.local/state"
+
+              # History settings
+              HISTCONTROL=ignoreboth
+              HISTSIZE=1000
+              HISTFILESIZE=2000
+              shopt -s histappend
+
+              # Check window size after each command
+              shopt -s checkwinsize
+
+              # Set PATH to include user's private bin if it exists
+              if [ -d "$HOME/.local/bin" ]; then
+                  PATH="$HOME/.local/bin:$PATH"
+              fi
+
+              # NVM initialization placeholder
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+              # Source bash aliases if it exists
+              [ -f ~/.bash_aliases ] && . ~/.bash_aliases
+
+              # Basic prompt
+              PS1='\u@\h:\w\$ '
+
+        - name: Deploy .bash_aliases configuration
+          copy:
+            dest: "/home/{{ claude_user }}/.bash_aliases"
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0644"
+            content: |
+              # ~/.bash_aliases: sourced by .bashrc
+
+              # Display configuration for X11 applications
+              export DISPLAY=:0
+
+              # Basic directory listing aliases
+              alias ll='ls -alF'
+              alias la='ls -A'
+              alias l='ls -CF'
+              alias ls='ls --color=auto'
+
+              # Grep with color
+              alias grep='grep --color=auto'
+              alias fgrep='fgrep --color=auto'
+              alias egrep='egrep --color=auto'
+
+              # Safety aliases
+              alias rm='rm -i'
+              alias cp='cp -i'
+              alias mv='mv -i'
+
+              # Directory navigation
+              alias ..='cd ..'
+              alias ...='cd ../..'
+
+    #########################################################
+    # Section 3: Security Configuration
+    #########################################################
+
+    - name: Configure Security Settings
+      become: true
+      block:
+        # 3.1 PAM Limits Configuration
+        - name: Configure PAM limits for claude user
+          copy:
+            dest: /etc/security/limits.d/99-claude.conf
+            owner: root
+            group: root
+            mode: "0644"
+            content: |
+              # Resource limits for claude user
+              claude  soft    nofile  65536
+              claude  hard    nofile  65536
+              claude  soft    nproc   4096
+              claude  hard    nproc   4096
+              claude  soft    memlock unlimited
+              claude  hard    memlock unlimited
+
+        # 3.2 AppArmor Profile
+        - name: Create AppArmor profile for bubblewrap
+          copy:
+            dest: /etc/apparmor.d/claude-bwrap
+            owner: root
+            group: root
+            mode: "0644"
+            content: |
+              # AppArmor profile for Claude Code bubblewrap sandbox
+              # This profile runs in enforce mode (logs and blocks violations)
+
+              #include <tunables/global>
+
+              profile claude-bwrap flags=(audit) {
+                #include <abstractions/base>
+
+                # Capabilities needed for bubblewrap sandboxing
+                capability sys_admin,
+                capability sys_chroot,
+                capability setuid,
+                capability setgid,
+
+                # Network access
+                network inet stream,
+                network inet6 stream,
+
+                # Read-only access to system directories
+                /usr/** r,
+                /lib/** r,
+                /lib64/** r,
+                /bin/** r,
+                /sbin/** r,
+                /etc/** r,
+
+                # Read-write access to claude home directory (owned files)
+                /home/claude/** rw,
+                owner /home/claude/** rw,
+
+                # Read-write access to /tmp
+                /tmp/** rw,
+
+                # Deny and audit access to sensitive locations
+                audit deny /home/daniel/** rw,
+                audit deny /root/** rw,
+                audit deny /etc/shadow rw,
+                audit deny /etc/gshadow rw,
+                audit deny /etc/sudoers* rw,
+              }
+
+        # 3.3 Load AppArmor Profile in Enforce Mode
+        # Note: Profile loads in enforce mode because 'complain' flag is not set
+        # Using apparmor_parser directly avoids aa-enforce which validates ALL profiles
+        - name: Load AppArmor profile (enforce mode)
+          command: apparmor_parser -r /etc/apparmor.d/claude-bwrap
+          changed_when: true
+
+        - name: Verify AppArmor profile is in enforce mode
+          shell: |
+            aa-status --enabled 2>/dev/null && \
+            aa-status 2>/dev/null | sed -n '/profiles are in enforce mode/,/profiles are in complain mode/p' | grep -q "claude-bwrap"
+          register: apparmor_verify
+          changed_when: false
+          failed_when: apparmor_verify.rc != 0
+
+    #########################################################
+    # Section 4: Rootless Docker Setup
+    #########################################################
+
+    - name: Configure Rootless Docker for Claude User
+      become: true
+      block:
+        # 4.1 Get Claude User UID/GID
+        - name: Get claude user UID
+          getent:
+            database: passwd
+            key: "{{ claude_user }}"
+          register: claude_passwd
+
+        - name: Set claude UID and GID facts
+          set_fact:
+            claude_uid: "{{ claude_passwd.ansible_facts.getent_passwd[claude_user][1] }}"
+            claude_gid: "{{ claude_passwd.ansible_facts.getent_passwd[claude_user][2] }}"
+
+        # 4.2 Configure Subordinate UIDs/GIDs
+        - name: Configure subordinate UIDs for claude user
+          lineinfile:
+            path: /etc/subuid
+            regexp: "^{{ claude_user }}:"
+            line: "{{ claude_user }}:100000:65536"
+            create: true
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Configure subordinate GIDs for claude user
+          lineinfile:
+            path: /etc/subgid
+            regexp: "^{{ claude_user }}:"
+            line: "{{ claude_user }}:100000:65536"
+            create: true
+            owner: root
+            group: root
+            mode: "0644"
+
+        # 4.3 Install Docker Prerequisites for Rootless
+        - name: Install prerequisites for Docker repository
+          apt:
+            name:
+              - ca-certificates
+              - curl
+              - gnupg
+            state: present
+
+        - name: Create directory for Docker GPG key
+          file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: "0755"
+
+        - name: Download Docker GPG key
+          get_url:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            dest: /etc/apt/keyrings/docker.asc
+            mode: "0644"
+
+        - name: Get system architecture
+          command: dpkg --print-architecture
+          register: dpkg_arch
+          changed_when: false
+
+        - name: Get Ubuntu version codename
+          shell: . /etc/os-release && echo "$VERSION_CODENAME"
+          register: ubuntu_codename
+          changed_when: false
+
+        - name: Add Docker apt repository
+          apt_repository:
+            repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable"
+            filename: docker
+            state: present
+
+        - name: Install Docker packages for rootless mode
+          apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-buildx-plugin
+              - docker-compose-plugin
+              - docker-ce-rootless-extras
+              - uidmap
+              - fuse-overlayfs
+              - slirp4netns
+            state: present
+            update_cache: true
+
+        # 4.4 Enable Lingering for Claude User
+        - name: Enable lingering for claude user
+          command: loginctl enable-linger {{ claude_user }}
+          args:
+            creates: /var/lib/systemd/linger/{{ claude_user }}
+
+        # 4.5 Setup Rootless Docker for Claude User
+        - name: Check if rootless docker is already installed
+          stat:
+            path: "/home/{{ claude_user }}/.config/systemd/user/docker.service"
+          register: rootless_docker_service
+
+        - name: Install rootless docker for claude user
+          become_user: "{{ claude_user }}"
+          shell: |
+            export XDG_RUNTIME_DIR=/run/user/{{ claude_uid }}
+            export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ claude_uid }}/bus
+            /usr/bin/dockerd-rootless-setuptool.sh install
+          args:
+            creates: "/home/{{ claude_user }}/.config/systemd/user/docker.service"
+          environment:
+            HOME: "/home/{{ claude_user }}"
+            PATH: "/usr/bin:/bin:/usr/sbin:/sbin"
+          when: not rootless_docker_service.stat.exists
+
+        # 4.6 Enable Rootless Docker Service
+        - name: Enable rootless docker service for claude user
+          become_user: "{{ claude_user }}"
+          shell: |
+            export XDG_RUNTIME_DIR=/run/user/{{ claude_uid }}
+            export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ claude_uid }}/bus
+            systemctl --user enable docker.service
+            systemctl --user start docker.service
+          environment:
+            HOME: "/home/{{ claude_user }}"
+          args:
+            executable: /bin/bash
+          when: not rootless_docker_service.stat.exists
+
+        # 4.7 Configure DOCKER_HOST Environment
+        - name: Add DOCKER_HOST to claude user's .bashrc
+          lineinfile:
+            path: "/home/{{ claude_user }}/.bashrc"
+            regexp: '^export DOCKER_HOST='
+            line: 'export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock'
+            insertafter: '^export XDG_STATE_HOME='
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+
+        - name: Add DOCKER_HOST to claude user's .bash_aliases
+          lineinfile:
+            path: "/home/{{ claude_user }}/.bash_aliases"
+            regexp: '^export DOCKER_HOST='
+            line: 'export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock'
+            insertafter: '^export DISPLAY='
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+
+    #########################################################
+    # Section 5: Node.js & Claude Code Installation
+    #########################################################
+
+    - name: Install Node.js and Claude Code
+      become: true
+      block:
+        # 5.1 Install NVM (Node Version Manager)
+        - name: Install NVM for claude user
+          become_user: "{{ claude_user }}"
+          shell: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh | bash
+          args:
+            executable: /bin/bash
+            creates: "/home/{{ claude_user }}/.nvm"
+          environment:
+            HOME: "/home/{{ claude_user }}"
+
+        # 5.2 Verify NVM shell configuration
+        # Note: The .bashrc already contains NVM initialization from Section 2
+        - name: Verify NVM configuration in .bashrc
+          lineinfile:
+            path: "/home/{{ claude_user }}/.bashrc"
+            regexp: 'export NVM_DIR="\$HOME/\.nvm"'
+            line: 'export NVM_DIR="$HOME/.nvm"'
+            state: present
+          check_mode: true
+          register: nvm_config_check
+
+        - name: Add NVM configuration to .bashrc if missing
+          blockinfile:
+            path: "/home/{{ claude_user }}/.bashrc"
+            marker: "# {mark} NVM CONFIGURATION"
+            block: |
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+          when: nvm_config_check.changed
+
+        # 5.3 Install Node.js via NVM
+        - name: Install Node.js via NVM
+          become_user: "{{ claude_user }}"
+          shell: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            nvm install {{ node_version }}
+            nvm alias default {{ node_version }}
+          args:
+            executable: /bin/bash
+            creates: "/home/{{ claude_user }}/.nvm/versions/node"
+          environment:
+            HOME: "/home/{{ claude_user }}"
+
+        # 5.4 Install Claude Code
+        - name: Install Claude Code for claude user
+          become_user: "{{ claude_user }}"
+          shell: |
+            curl -fsSL https://claude.ai/install.sh | bash
+          args:
+            executable: /bin/bash
+            creates: "/home/{{ claude_user }}/.local/bin/claude"
+          environment:
+            HOME: "/home/{{ claude_user }}"
+            PATH: "/home/{{ claude_user }}/.local/bin:/home/{{ claude_user }}/.nvm/versions/node/v{{ node_version }}/bin:/usr/bin:/bin"
+
+        # 5.5 Verify ~/.local/bin is in PATH
+        # Note: This is already configured in .bashrc from Section 2, but verify
+        - name: Verify .local/bin is in PATH in .bashrc
+          lineinfile:
+            path: "/home/{{ claude_user }}/.bashrc"
+            regexp: 'PATH="\$HOME/\.local/bin:\$PATH"'
+            line: '    PATH="$HOME/.local/bin:$PATH"'
+            state: present
+          check_mode: true
+          register: local_bin_check
+
+        - name: Ensure .local/bin is in PATH (fallback)
+          lineinfile:
+            path: "/home/{{ claude_user }}/.bashrc"
+            regexp: '^export PATH="\$HOME/\.local/bin:\$PATH"$'
+            line: 'export PATH="$HOME/.local/bin:$PATH"'
+            insertafter: '^# Set PATH to include'
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+          when: local_bin_check.changed
+
+    #########################################################
+    # Section 6: Display Access (X11)
+    #########################################################
+
+    - name: Configure X11 Display Access
+      block:
+        # 6.1 Grant X11 Display Access
+        - name: Grant claude user access to X display
+          command: xhost +SI:localuser:{{ claude_user }}
+          changed_when: false
+          ignore_errors: true
+
+        # 6.2 Create .Xauthority File
+        - name: Create .Xauthority file for claude user
+          become: true
+          file:
+            path: "/home/{{ claude_user }}/.Xauthority"
+            state: touch
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0600"
+
+        # 6.3 Verify DISPLAY Environment
+        - name: Ensure DISPLAY=:0 is in .bash_aliases
+          become: true
+          lineinfile:
+            path: "/home/{{ claude_user }}/.bash_aliases"
+            regexp: '^export DISPLAY='
+            line: 'export DISPLAY=:0'
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+
+    #########################################################
+    # Section 7: Logging Infrastructure
+    #########################################################
+
+    - name: Configure Logging Infrastructure
+      become: true
+      block:
+        # 7.1 Create Log Directory Structure
+        - name: Create main log directory
+          file:
+            path: "{{ log_base }}"
+            state: directory
+            owner: root
+            group: adm
+            mode: "0755"
+
+        - name: Create apparmor log directory
+          file:
+            path: "{{ log_base }}/apparmor"
+            state: directory
+            owner: root
+            group: adm
+            mode: "0755"
+
+        - name: Create violations log directory
+          file:
+            path: "{{ log_base }}/violations"
+            state: directory
+            owner: root
+            group: adm
+            mode: "0755"
+
+        - name: Create reports log directory
+          file:
+            path: "{{ log_base }}/reports"
+            state: directory
+            owner: root
+            group: adm
+            mode: "0755"
+
+        # 7.2 Create Logrotate Configuration
+        - name: Create logrotate configuration for claude-sandbox
+          copy:
+            dest: /etc/logrotate.d/claude-sandbox
+            owner: root
+            group: root
+            mode: "0644"
+            content: |
+              /var/log/claude-sandbox/*/*.log {
+                  daily
+                  rotate 30
+                  compress
+                  delaycompress
+                  notifempty
+                  missingok
+                  create 0644 root adm
+                  dateext
+                  dateformat -%Y%m%d
+              }
+
+        # 7.3 Create Real-Time Monitor Script
+        - name: Deploy real-time violation monitor script
+          copy:
+            src: files/claude-sandbox/claude-sandbox-monitor.sh
+            dest: /usr/local/bin/claude-sandbox-monitor.sh
+            owner: root
+            group: root
+            mode: "0755"
+
+        # 7.4 Create Daily Report Script
+        - name: Deploy daily report generator script
+          copy:
+            src: files/claude-sandbox/claude-sandbox-report.sh
+            dest: /usr/local/bin/claude-sandbox-report.sh
+            owner: root
+            group: root
+            mode: "0755"
+
+        # 7.5 Set Permissions on Log Directory for daniel User
+        - name: Grant daniel user read access to log directory
+          acl:
+            path: "{{ log_base }}"
+            entity: "{{ home_user }}"
+            etype: user
+            permissions: rx
+            recursive: true
+            state: present
+
+        - name: Set default ACL for daniel user on log directory
+          acl:
+            path: "{{ log_base }}"
+            entity: "{{ home_user }}"
+            etype: user
+            permissions: rx
+            default: true
+            recursive: true
+            state: present
+
+    #########################################################
+    # Section 8: Claude Code Configuration
+    #########################################################
+
+    - name: Configure Claude Code Settings
+      become: true
+      block:
+        # 8.1 Create Claude Code Config Directory
+        - name: Create Claude Code config directory
+          file:
+            path: "/home/{{ claude_user }}/.claude"
+            state: directory
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0700"
+
+        # 8.2 Create Claude Code Settings with Sandbox Configuration
+        - name: Create Claude Code settings.json
+          copy:
+            dest: "/home/{{ claude_user }}/.claude/settings.json"
+            owner: "{{ claude_user }}"
+            group: "{{ claude_user }}"
+            mode: "0600"
+            content: |
+              {
+                "permissions": {
+                  "allow": [],
+                  "deny": []
+                },
+                "sandbox": {
+                  "enabled": true,
+                  "allowedDomains": [
+                    "api.anthropic.com",
+                    "anthropic.com",
+                    "claude.ai",
+                    "registry.npmjs.org",
+                    "npmjs.org",
+                    "github.com",
+                    "githubusercontent.com",
+                    "pypi.org",
+                    "files.pythonhosted.org",
+                    "hub.docker.com",
+                    "registry-1.docker.io",
+                    "auth.docker.io",
+                    "ghcr.io"
+                  ],
+                  "deniedDirectories": [
+                    "/home/daniel",
+                    "/root",
+                    "/etc/shadow",
+                    "/etc/sudoers",
+                    "/boot"
+                  ]
+                }
+              }

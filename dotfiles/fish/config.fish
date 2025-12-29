@@ -9,14 +9,24 @@ set -g theme_powerline_fonts no
 set -g JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
 set -g EDITOR vim
 
-# Add user to xhost
-xhost +SI:localuser:ai_heaven
-
 # -------------------
 # Theme config
 # -------------------
 source $HOME/automation/dotfiles/fish/theme_bobthefish.fish
 set -g -x theme_color_scheme solarized-dark
+
+# User distinction for Claude
+if test "$USER" = "claude"
+    set -g theme_display_user yes
+end
+
+# Set wezterm user variable for user detection
+# This allows wezterm to know which user the shell is running as
+function __wezterm_set_user_var --on-event fish_prompt
+    if test -n "$WEZTERM_PANE"
+        printf "\033]1337;SetUserVar=%s=%s\007" "SHELL_USER" (echo -n $USER | base64)
+    end
+end
 
 # -------------------
 # Aliases 
@@ -45,7 +55,8 @@ alias cdt 'cd $HOME/code/tududi/'
 alias edit 'nv $HOME/automation/dotfiles/fish/config.fish'
 alias term 'nv $HOME/automation/dotfiles/wezterm.lua'
 alias hotk 'nv $HOME/automation/dotfiles/qtile/config.py'
-alias ai 'sudo -iu ai_heaven'
+alias ai 'sudo WEZTERM_PANE=$WEZTERM_PANE -iu claude'
+alias cdc 'cd /home/claude/projects'
 
 # File listing
 alias ls 'eza --icons'
@@ -213,6 +224,13 @@ jump shell fish | source
 # -------------------
 # Start/Stop functions
 # -------------------
+
+function ai
+    bash $HOME/automation/playbooks/files/enable-claude-ssh.sh
+    sudo WEZTERM_PANE=$WEZTERM_PANE -iu claude
+end
+
+
 function android_studio
     set cmd $argv[1]
 
