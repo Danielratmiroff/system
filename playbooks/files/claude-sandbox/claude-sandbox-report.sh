@@ -23,5 +23,5 @@ echo "" >> "$REPORT_FILE"
 echo "=== Top Denied Paths ===" >> "$REPORT_FILE"
 journalctl --since "24 hours ago" -k | grep -i 'apparmor.*denied' | grep -oP 'name="[^"]*"' | sort | uniq -c | sort -rn | head -10 >> "$REPORT_FILE" 2>/dev/null
 
-echo "Report saved to: $REPORT_FILE"
 cat "$REPORT_FILE"
+echo "Report saved to: $REPORT_FILE"

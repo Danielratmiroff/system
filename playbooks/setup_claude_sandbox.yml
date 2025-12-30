@@ -538,12 +538,46 @@
           when: local_bin_check.changed
 
     #########################################################
-    # Section 6: Display Access (X11)
+    # Section 6: UV (Python Package Manager) Installation
+    #########################################################
+
+    - name: Install UV Python Package Manager
+      become: true
+      block:
+        # 6.1 Install UV for claude user
+        - name: Install UV for claude user
+          become_user: "{{ claude_user }}"
+          shell: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+          args:
+            executable: /bin/bash
+            creates: "/home/{{ claude_user }}/.local/bin/uv"
+          environment:
+            HOME: "/home/{{ claude_user }}"
+
+        # 6.2 Verify UV installation
+        - name: Verify UV is installed
+          become_user: "{{ claude_user }}"
+          shell: |
+            /home/{{ claude_user }}/.local/bin/uv --version
+          args:
+            executable: /bin/bash
+          environment:
+            HOME: "/home/{{ claude_user }}"
+          register: uv_version
+          changed_when: false
+
+        - name: Display UV version
+          debug:
+            msg: "UV installed: {{ uv_version.stdout }}"
+
+    #########################################################
+    # Section 7: Display Access (X11)
     #########################################################
 
     - name: Configure X11 Display Access
       block:
-        # 6.1 Grant X11 Display Access
+        # 7.1 Grant X11 Display Access
         - name: Grant claude user access to X display
           command: xhost +SI:localuser:{{ claude_user }}
           changed_when: false
@@ -711,7 +745,8 @@
                     "hub.docker.com",
                     "registry-1.docker.io",
                     "auth.docker.io",
-                    "ghcr.io"
+                    "ghcr.io",
+                    "astral.sh"
                   ],
                   "deniedDirectories": [
                     "/home/daniel",

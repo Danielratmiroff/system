@@ -20,6 +20,13 @@ if test "$USER" = "claude"
     set -g theme_display_user yes
 end
 
+# Display current user as a small hint at the beginning of the prompt
+function fish_mode_prompt
+    set_color brblack
+    echo -n "[$USER] "
+    set_color normal
+end
+
 # Set wezterm user variable for user detection
 # This allows wezterm to know which user the shell is running as
 function __wezterm_set_user_var --on-event fish_prompt
@@ -38,7 +45,13 @@ alias cursor '$HOME/automation/appimages/apps/cursor*AppImage'
 alias cursorcli 'cursor-agent'
 #alias fd (which fdfind)
 
+# AI stuff
+alias aireport='sudo $HOME/automation/playbooks/files/claude-sandbox/claude-sandbox-report.sh'
+alias aimonitor='$HOME/automation/playbooks/files/claude-sandbox/claude-sandbox-monitor.sh'
+alias ai 'sudo WEZTERM_PANE=$WEZTERM_PANE -iu claude'
+alias cdc 'cd /home/claude/projects'
 
+# Win VM
 alias win_console 'lxc console win11 --type=vga'
 alias win_start 'lxc start win11 --console=vga'
 
@@ -55,8 +68,6 @@ alias cdt 'cd $HOME/code/tududi/'
 alias edit 'nv $HOME/automation/dotfiles/fish/config.fish'
 alias term 'nv $HOME/automation/dotfiles/wezterm.lua'
 alias hotk 'nv $HOME/automation/dotfiles/qtile/config.py'
-alias ai 'sudo WEZTERM_PANE=$WEZTERM_PANE -iu claude'
-alias cdc 'cd /home/claude/projects'
 
 # File listing
 alias ls 'eza --icons'
@@ -224,6 +235,7 @@ jump shell fish | source
 # -------------------
 # Start/Stop functions
 # -------------------
+
 
 function ai
     bash $HOME/automation/playbooks/files/enable-claude-ssh.sh
