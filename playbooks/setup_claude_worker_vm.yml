@@ -1,0 +1,117 @@
+---
+# Filename: setup_claude_worker_vm.yml
+#
+# Ansible Playbook to create a Multipass VM for Claude Code with Chromium and X11 forwarding.
+#
+# This playbook will:
+# 1. Create SSH key pair for VM access
+# 2. Template cloud-init configuration with SSH key
+# 3. Launch Multipass VM with cloud-init
+# 4. Wait for cloud-init to complete
+# 5. Create baseline snapshot for recovery
+# 6. Install helper script for easy VM access
+
+- name: Setup Claude Worker VM with Multipass
+  hosts: localhost
+  gather_facts: true
+  collections:
+    - community.crypto
+
+  vars:
+    vm_name: "claude-vm"
+    vm_cpus: 16
+    vm_memory: "32G"
+    vm_disk: "100G"
+    ssh_key_name: "claude-vm-key"
+    ssh_key_path: "{{ ansible_env.HOME }}/.ssh/{{ ssh_key_name }}"
+    cloud_init_template: "files/claude-worker-vm/cloud-init.yaml"
+    helper_script_src: "files/claude-worker-vm/claude-vm"
+    helper_script_dest: "{{ ansible_env.HOME }}/.local/bin/claude-vm"
+
+  tasks:
+    #########################################################
+    # Section 2: Create SSH Key Pair
+    #########################################################
+
+    - name: Create SSH Key Pair for VM Access
+      block:
+        - name: Check if SSH key already exists
+          stat:
+            path: "{{ ssh_key_path }}"
+          register: ssh_key_stat
+
+        - name: Generate ed25519 SSH key pair if not exists
+          community.crypto.openssh_keypair:
+            path: "{{ ssh_key_path }}"
+            type: ed25519
+            comment: "claude-vm-access"
+            state: present
+          when: not ssh_key_stat.stat.exists
+
+        - name: Read the public key content
+          slurp:
+            src: "{{ ssh_key_path }}.pub"
+          register: ssh_public_key_content
+
+        - name: Register SSH public key variable
+          set_fact:
+            ssh_public_key: "{{ ssh_public_key_content.content | b64decode | trim }}"
+
+    #########################################################
+    # Section 3: Create and Configure VM
+    #########################################################
+
+    - name: Create and Configure Multipass VM
+      block:
+        - name: Template the cloud-init.yaml file
+          template:
+            src: "{{ cloud_init_template }}"
+            dest: "{{ ansible_env.HOME }}/cloud-init-{{ vm_name }}.yaml"
+            mode: "0600"
+
+        - name: Check if VM already exists
+          shell: multipass info {{ vm_name }}
+          register: vm_exists
+          ignore_errors: true
+          changed_when: false
+
+        - name: Launch VM if it does not exist
+          shell: >
+            multipass launch 24.04
+            --name {{ vm_name }}
+            --cpus {{ vm_cpus }}
+            --memory {{ vm_memory }}
+            --disk {{ vm_disk }}
+            --cloud-init {{ ansible_env.HOME }}/cloud-init-{{ vm_name }}.yaml
+            --timeout 1800
+          when: vm_exists.rc != 0
+
+        - name: Wait for cloud-init to complete
+          shell: multipass exec {{ vm_name }} -- cloud-init status --wait
+          register: cloud_init_status
+          changed_when: false
+          when: vm_exists.rc != 0
+
+        - name: Clean up temporary cloud-init file
+          file:
+            path: "{{ ansible_env.HOME }}/cloud-init-{{ vm_name }}.yaml"
+            state: absent
+
+
+    #########################################################
+    # Section 4: Install Helper Script
+    #########################################################
+
+    - name: Install Helper Script for Easy VM Access
+      block:
+        - name: Ensure ~/.local/bin directory exists
+          file:
+            path: "{{ ansible_env.HOME }}/.local/bin"
+            state: directory
+            mode: "0755"
+
+        - name: Copy helper script to ~/.local/bin/claude-vm
+          copy:
+            src: "{{ helper_script_src }}"
+            dest: "{{ helper_script_dest }}"
+            mode: "0755"

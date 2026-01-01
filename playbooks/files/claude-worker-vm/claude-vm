@@ -1,0 +1,267 @@
+#!/bin/bash
+#
+# claude-vm - Convenient access to the claude-vm Multipass VM with X11 forwarding
+#
+# This script provides helper commands for managing and connecting to the claude-vm
+# virtual machine, including SSH with X11 forwarding support.
+#
+
+set -e
+
+VM_NAME="claude-vm"
+SSH_KEY="$HOME/.ssh/claude-vm-key"
+
+# Check for required dependencies
+check_dependencies() {
+    if ! command -v jq &> /dev/null; then
+        echo "Error: jq is not installed. Please install it with: sudo apt install jq" >&2
+        exit 1
+    fi
+
+    if ! command -v multipass &> /dev/null; then
+        echo "Error: multipass is not installed. Please install it first." >&2
+        exit 1
+    fi
+}
+
+# Check if the VM exists
+check_vm_exists() {
+    if ! multipass info "$VM_NAME" &> /dev/null; then
+        echo "Error: VM '$VM_NAME' does not exist." >&2
+        exit 1
+    fi
+}
+
+# Get the VM state (Running, Stopped, etc.)
+get_vm_state() {
+    multipass info "$VM_NAME" --format json | jq -r '.info["'"$VM_NAME"'"].state'
+}
+
+# Get the VM IP address
+get_vm_ip() {
+    multipass info "$VM_NAME" --format json | jq -r '.info["'"$VM_NAME"'"].ipv4[0]'
+}
+
+# Ensure the VM is running, start it if not
+ensure_running() {
+    local state
+    state=$(get_vm_state)
+
+    if [ "$state" != "Running" ]; then
+        echo "VM is not running (state: $state). Starting..."
+        multipass start "$VM_NAME"
+        echo "Waiting for VM to be ready..."
+        sleep 3
+    fi
+}
+
+# SSH into the VM with X11 forwarding
+ssh_to_vm() {
+    ensure_running
+    local vm_ip
+    vm_ip=$(get_vm_ip)
+
+    if [ -z "$vm_ip" ] || [ "$vm_ip" = "null" ]; then
+        echo "Error: Could not get VM IP address." >&2
+        exit 1
+    fi
+
+    if [ ! -f "$SSH_KEY" ]; then
+        echo "Error: SSH key not found at $SSH_KEY" >&2
+        exit 1
+    fi
+
+    shift 2>/dev/null || true  # Remove 'ssh' argument if present
+    ssh -Y -i "$SSH_KEY" ubuntu@"$vm_ip" "$@"
+}
+
+# Print the VM IP address
+print_ip() {
+    ensure_running
+    local vm_ip
+    vm_ip=$(get_vm_ip)
+
+    if [ -z "$vm_ip" ] || [ "$vm_ip" = "null" ]; then
+        echo "Error: Could not get VM IP address." >&2
+        exit 1
+    fi
+
+    echo "$vm_ip"
+}
+
+# Start the VM
+start_vm() {
+    local state
+    state=$(get_vm_state)
+
+    if [ "$state" = "Running" ]; then
+        echo "VM is already running."
+    else
+        echo "Starting VM..."
+        multipass start "$VM_NAME"
+        echo "VM started."
+    fi
+}
+
+# Stop the VM
+stop_vm() {
+    local state
+    state=$(get_vm_state)
+
+    if [ "$state" = "Stopped" ]; then
+        echo "VM is already stopped."
+    else
+        echo "Stopping VM..."
+        multipass stop "$VM_NAME"
+        echo "VM stopped."
+    fi
+}
+
+# Open multipass shell (without X11)
+open_shell() {
+    ensure_running
+    multipass shell "$VM_NAME"
+}
+
+# Update SSH config for VS Code Remote SSH
+update_ssh_config() {
+    local vm_ip
+    vm_ip=$(get_vm_ip)
+
+    if [ -z "$vm_ip" ] || [ "$vm_ip" = "null" ]; then
+        echo "Error: Could not get VM IP address." >&2
+        exit 1
+    fi
+
+    local ssh_config="$HOME/.ssh/config"
+    local host_block="Host claude-vm
+    HostName $vm_ip
+    User ubuntu
+    IdentityFile ~/.ssh/claude-vm-key"
+
+    # Create .ssh directory and config if they don't exist
+    mkdir -p "$HOME/.ssh"
+    touch "$ssh_config"
+    chmod 600 "$ssh_config"
+
+    # Check if claude-vm host block already exists
+    if grep -q "^Host claude-vm$" "$ssh_config" 2>/dev/null; then
+        # Update existing block - replace HostName line
+        sed -i "/^Host claude-vm$/,/^Host / { /HostName/s/.*/    HostName $vm_ip/ }" "$ssh_config"
+        echo "Updated SSH config with IP: $vm_ip"
+    else
+        # Append new block
+        echo "" >> "$ssh_config"
+        echo "$host_block" >> "$ssh_config"
+        echo "Added claude-vm to SSH config with IP: $vm_ip"
+    fi
+}
+
+# Setup VS Code Remote SSH connection
+setup_vscode() {
+    ensure_running
+    update_ssh_config
+
+    echo ""
+    echo "VS Code Remote SSH is ready!"
+    echo "Connect using: Ctrl+Shift+P → 'Remote-SSH: Connect to Host' → claude-vm"
+}
+
+# Create a snapshot
+create_snapshot() {
+    local snapshot_name="${1:-checkpoint-$(date +%Y%m%d)}"
+
+    echo "Creating snapshot '$snapshot_name'..."
+    multipass snapshot "$VM_NAME" --name "$snapshot_name"
+    echo "Snapshot '$snapshot_name' created."
+}
+
+# Restore to a snapshot
+restore_snapshot() {
+    local snapshot_name="${1:-baseline}"
+
+    echo "Restoring to snapshot '$snapshot_name'..."
+    multipass restore "$VM_NAME.$snapshot_name"
+    echo "Restored to snapshot '$snapshot_name'."
+}
+
+# Show usage
+show_help() {
+    cat << EOF
+Usage: $(basename "$0") [command] [options]
+
+Commands:
+    (none), ssh    SSH into VM with X11 forwarding (passes additional args to ssh)
+    ip             Print the VM IP address
+    start          Start the VM
+    stop           Stop the VM
+    shell          Open multipass shell (without X11 forwarding)
+    snapshot [n]   Create a snapshot (default name: checkpoint-YYYYMMDD)
+    restore [n]    Restore to a snapshot (default: baseline)
+    vscode         Update SSH config for VS Code Remote SSH connection
+    help           Show this help message
+
+Examples:
+    $(basename "$0")                    # SSH into VM with X11
+    $(basename "$0") ssh                # Same as above
+    $(basename "$0") ssh -t htop        # Run htop via SSH
+    $(basename "$0") ip                 # Get VM IP address
+    $(basename "$0") snapshot mybackup  # Create snapshot named 'mybackup'
+    $(basename "$0") restore baseline   # Restore to 'baseline' snapshot
+    $(basename "$0") vscode             # Setup VS Code Remote SSH
+
+Environment:
+    VM Name:  $VM_NAME
+    SSH Key:  $SSH_KEY
+EOF
+}
+
+# Main entry point
+main() {
+    check_dependencies
+
+    local command="${1:-ssh}"
+
+    # Commands that don't require VM to exist
+    if [ "$command" = "help" ] || [ "$command" = "-h" ] || [ "$command" = "--help" ]; then
+        show_help
+        exit 0
+    fi
+
+    # All other commands require VM to exist
+    check_vm_exists
+
+    case "$command" in
+        ssh|"")
+            ssh_to_vm "$@"
+            ;;
+        ip)
+            print_ip
+            ;;
+        start)
+            start_vm
+            ;;
+        stop)
+            stop_vm
+            ;;
+        shell)
+            open_shell
+            ;;
+        snapshot)
+            create_snapshot "$2"
+            ;;
+        restore)
+            restore_snapshot "$2"
+            ;;
+        vscode)
+            setup_vscode
+            ;;
+        *)
+            echo "Error: Unknown command '$command'" >&2
+            echo "Run '$(basename "$0") help' for usage." >&2
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
