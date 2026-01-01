@@ -1,0 +1,10 @@
+{
+  "sandbox": {
+    "enableWeakerNestedSandbox": true,
+    "allowUnsandboxedCommands": false
+  },
+  "permissions": {
+    "allow": [],
+    "deny": []
+  }
+}
