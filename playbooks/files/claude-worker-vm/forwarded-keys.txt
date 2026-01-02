@@ -1,0 +1,3 @@
+# SSH keys to forward to claude-vm (one per line)
+# These keys will be loaded into an isolated agent for the VM session
+~/.ssh/danielr_github

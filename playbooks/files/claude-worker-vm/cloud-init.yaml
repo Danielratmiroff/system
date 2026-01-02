@@ -16,7 +16,6 @@ packages:
   - curl
   - git
   - build-essential
-  - bubblewrap
 
 runcmd:
   # Configure SSH for X11 forwarding
@@ -34,17 +33,17 @@ runcmd:
   - sudo -u ubuntu git config --global user.name "danielr"
   - sudo -u ubuntu git config --global user.email "danielratmiroff@gmail.com"
   # Configure Claude Code sandbox settings
-  - mkdir -p /home/ubuntu/.claude
-  - |
-    cat > /home/ubuntu/.claude/settings.json << 'EOF'
-    {
-      "sandbox": {
-        "enabled": true,
-        "mode": "auto-allow"
-      }
-    }
-    EOF
-  - chown -R ubuntu:ubuntu /home/ubuntu/.claude
+  # - mkdir -p /home/ubuntu/.claude
+  # - |
+  #   cat > /home/ubuntu/.claude/settings.json << 'EOF'
+  #   {
+  #     "sandbox": {
+  #       "enabled": true,
+  #       "mode": "auto-allow"
+  #     }
+  #   }
+  #   EOF
+  # - chown -R ubuntu:ubuntu /home/ubuntu/.claude
   # Install Docker Engine (official repository)
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
   - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu noble main" > /etc/apt/sources.list.d/docker.list
@@ -75,5 +74,10 @@ runcmd:
     alias grep='grep --color=auto'
     alias df='df -h'
     alias du='du -h'
+
+    # Claude
+    alias clauded='claude --dangerously-skip-permissions'
+    alias claudec='claude --chrome'
+
     EOF
   - chown ubuntu:ubuntu /home/ubuntu/.bash_aliases

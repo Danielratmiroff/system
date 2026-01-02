@@ -55,7 +55,7 @@ ensure_running() {
     fi
 }
 
-# SSH into the VM with X11 forwarding
+# SSH into the VM with X11 forwarding and isolated SSH agent
 ssh_to_vm() {
     ensure_running
     local vm_ip
@@ -72,7 +72,30 @@ ssh_to_vm() {
     fi
 
     shift 2>/dev/null || true  # Remove 'ssh' argument if present
-    ssh -Y -i "$SSH_KEY" ubuntu@"$vm_ip" "$@"
+
+    # Path to forwarded keys config
+    local keys_file="$HOME/automation/playbooks/files/claude-worker-vm/forwarded-keys.txt"
+
+    # Spawn isolated SSH agent with only approved keys
+    ssh-agent bash -c '
+        # Add VM access key
+        ssh-add "'"$SSH_KEY"'" 2>/dev/null
+
+        # Add approved forwarded keys from config file
+        if [ -f "'"$keys_file"'" ]; then
+            while IFS= read -r key || [ -n "$key" ]; do
+                # Skip comments and empty lines
+                case "$key" in
+                    "#"*|"") continue ;;
+                esac
+                # Expand ~ and add key
+                eval ssh-add "$key" 2>/dev/null
+            done < "'"$keys_file"'"
+        fi
+
+        # Connect with agent forwarding and X11
+        ssh -A -Y ubuntu@"'"$vm_ip"'" '"$*"'
+    '
 }
 
 # Print the VM IP address

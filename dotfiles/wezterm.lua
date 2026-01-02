@@ -73,10 +73,6 @@ config.window_frame = {
 wezterm.on("update-status", function(window, pane)
 	local cells = {}
 
-	-- Detect shell user via user variable (set by fish/bash)
-	local shell_user = pane:get_user_vars().SHELL_USER or ""
-	local is_claude = (shell_user == "claude")
-
 	-- Figure out the hostname of the pane on a best-effort basis
 	local hostname = wezterm.hostname()
 	local cwd_uri = pane:get_current_working_dir()
@@ -84,24 +80,11 @@ wezterm.on("update-status", function(window, pane)
 		hostname = cwd_uri.host
 	end
 
-	-- Check if in claude's directory (for daniel)
-	local in_claude_dir = false
-	if cwd_uri then
-		local path = cwd_uri.file_path or ""
-		in_claude_dir = path:match("^/home/claude") ~= nil
-	end
+	-- Detect if we're in the Claude Multipass VM
+	local is_claude_vm = (hostname == "claude-vm")
 
-	-- Styling priority: logged-in-as-claude > in-claude-dir > dir-specific > default
-	if is_claude then
-		window:set_config_overrides({
-			window_background_opacity = 0.85,
-			colors = { background = "#1a1a2e" },
-			window_frame = {
-				active_titlebar_bg = "#2d2d44",
-				inactive_titlebar_bg = "#2d2d44",
-			}
-		})
-	elseif in_claude_dir then
+	-- Styling priority: claude-vm > dir-specific > default
+	if is_claude_vm then
 		window:set_config_overrides({
 			window_background_opacity = 0.85,
 			colors = { background = "#1a1a2e" },
@@ -122,10 +105,8 @@ wezterm.on("update-status", function(window, pane)
 	end
 
 	-- Status bar: user indicator
-	if is_claude then
-		table.insert(cells, "◈ claude")
-	elseif in_claude_dir then
-		table.insert(cells, "[claude] " .. hostname)
+	if is_claude_vm then
+		table.insert(cells, "◈ claude-vm")
 	else
 		table.insert(cells, " " .. hostname)
 	end

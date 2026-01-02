@@ -46,10 +46,8 @@ alias cursorcli 'cursor-agent'
 #alias fd (which fdfind)
 
 # AI stuff
-alias aireport='sudo $HOME/automation/playbooks/files/claude-sandbox/claude-sandbox-report.sh'
-alias aimonitor='$HOME/automation/playbooks/files/claude-sandbox/claude-sandbox-monitor.sh'
-alias ai 'sudo WEZTERM_PANE=$WEZTERM_PANE -iu claude'
-alias cdc 'cd /home/claude/projects'
+alias claude-vm '$HOME/automation/playbooks/files/claude-worker-vm/claude-vm'
+alias ai 'claude-vm'
 
 # Win VM
 alias win_console 'lxc console win11 --type=vga'
@@ -235,13 +233,6 @@ jump shell fish | source
 # -------------------
 # Start/Stop functions
 # -------------------
-
-
-function ai
-    bash $HOME/automation/playbooks/files/enable-claude-ssh.sh
-    sudo WEZTERM_PANE=$WEZTERM_PANE -iu claude
-end
-
 
 function android_studio
     set cmd $argv[1]
