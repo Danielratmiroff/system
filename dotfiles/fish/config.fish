@@ -48,6 +48,8 @@ alias cursorcli 'cursor-agent'
 # AI stuff
 alias claude-vm '$HOME/automation/playbooks/files/claude-worker-vm/claude-vm'
 alias ai 'claude-vm'
+alias aicd 'cd $HOME/code/test/'
+alias aicode='cursor --remote ssh-remote+claude-vm /home/ubuntu/code/'
 
 # Win VM
 alias win_console 'lxc console win11 --type=vga'
