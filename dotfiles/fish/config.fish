@@ -224,6 +224,41 @@ function source_config
     source $HOME/automation/dotfiles/fish/config.fish
 end
 
+function lsc --description 'Find files and copy closest match path to clipboard'
+    if not set -q argv[1]
+        echo "Usage: lsc <pattern>"
+        return 1
+    end
+
+    # Find all matches, sort by path length (closest first)
+    set -l matches (find . -iname "*$argv[1]*" 2>/dev/null | awk '{print length, $0}' | sort -n | cut -d' ' -f2-)
+
+    if test -z "$matches"
+        echo "No matches found for: $argv[1]"
+        return 1
+    end
+
+    # Get the closest (shortest path) match
+    set -l closest $matches[1]
+    set -l full_path (realpath "$closest")
+
+    # Copy to clipboard
+    echo "$full_path" | copy
+
+    # Show all matches
+    echo "Matches:"
+    for match in $matches
+        if test "$match" = "$closest"
+            echo "  ✓ $match"
+        else
+            echo "    $match"
+        end
+    end
+
+    echo ""
+    echo "Copied: $full_path"
+end
+
 function fish_remove_path
     if set -l ind (contains -i -- $argv $fish_user_paths)
         set -e fish_user_paths[$ind]

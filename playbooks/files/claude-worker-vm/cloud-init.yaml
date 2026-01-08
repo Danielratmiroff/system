@@ -16,24 +16,110 @@ packages:
   - curl
   - git
   - build-essential
+  - docker.io
+  - docker-compose-v2
+
+write_files:
+  # Bash aliases and functions
+  - path: /home/ubuntu/.bash_aliases
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    content: |
+      # Safety aliases
+      alias rm='rm -i'
+      alias cp='cp -i'
+      alias mv='mv -i'
+
+      # Navigation
+      alias ..='cd ..'
+      alias ...='cd ../..'
+      alias ....='cd ../../..'
+
+      # Listing
+      alias ll='ls -alF'
+      alias la='ls -A'
+      alias l='ls -CF'
+
+      # Convenience
+      alias cls='clear'
+      alias h='history'
+      alias grep='grep --color=auto'
+      alias df='df -h'
+      alias du='du -h'
+
+      # Claude
+      alias claude='claude --dangerously-skip-permissions'
+      alias claudec='claude --chrome'
+
+      # Copy
+      alias copy='xclip -selection clipboard'
+
+      # Find file and copy path to clipboard
+      lsc() {
+        if [ -z "$1" ]; then
+          echo "Usage: lsc <pattern>"
+          return 1
+        fi
+
+        local matches=$(find . -iname "*$1*" 2>/dev/null | awk '{print length, $0}' | sort -n | cut -d' ' -f2-)
+
+        if [ -z "$matches" ]; then
+          echo "No matches found for: $1"
+          return 1
+        fi
+
+        local closest=$(echo "$matches" | head -n1)
+        local full_path=$(realpath "$closest")
+
+        echo "$full_path" | copy
+
+        echo "Matches:"
+        echo "$matches" | while read -r match; do
+          if [ "$match" = "$closest" ]; then
+            echo "  ✓ $match"
+          else
+            echo "    $match"
+          fi
+        done
+
+        echo ""
+        echo "Copied: $full_path"
+      }
+
+  # Bashrc additions (OSC 7 for terminal emulators)
+  - path: /home/ubuntu/.bashrc_additions
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    content: |
+      # Emit OSC 7 escape sequence with hostname for terminal emulators
+      __osc7_cwd() {
+          printf '\033]7;file://%s%s\033\\' "$(hostname)" "$PWD"
+      }
+      PROMPT_COMMAND="__osc7_cwd${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
 
 runcmd:
   # Configure SSH for X11 forwarding
   - sed -i 's/#X11Forwarding.*/X11Forwarding yes/' /etc/ssh/sshd_config
   - sed -i 's/#X11UseLocalhost.*/X11UseLocalhost no/' /etc/ssh/sshd_config
   - systemctl restart sshd
+
   # Install Google Chrome (official .deb, works with X11 forwarding)
   - wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/chrome.deb
   - apt-get install -y /tmp/chrome.deb
   - rm /tmp/chrome.deb
+
   # Install UV
   - curl -LsSf https://astral.sh/uv/install.sh | sh
+
   # Install Node.js and Claude Code
   - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
   - apt-get install -y nodejs
   - npm install -g @anthropic-ai/claude-code
+
+  # Configure git
   - sudo -u ubuntu git config --global user.name "danielr"
   - sudo -u ubuntu git config --global user.email "danielratmiroff@gmail.com"
+
   # Configure Claude Code sandbox settings
   # - mkdir -p /home/ubuntu/.claude
   # - |
@@ -46,12 +132,13 @@ runcmd:
   #   }
   #   EOF
   # - chown -R ubuntu:ubuntu /home/ubuntu/.claude
-  # Install Docker Engine (official repository)
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu noble main" > /etc/apt/sources.list.d/docker.list
-  - apt-get update
-  - apt-get install -y docker-ce docker-ce-cli containerd.io
+  #
+  # Add ubuntu user to docker group
   - usermod -aG docker ubuntu
+
+  # Install xclip
+  - apt-get install xclip
+
   # Install GitHub CLI (gh)
   - mkdir -p -m 755 /etc/apt/keyrings
   - wget -nv -O /tmp/githubcli-archive-keyring.gpg https://cli.github.com/packages/githubcli-archive-keyring.gpg
@@ -60,44 +147,6 @@ runcmd:
   - echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
   - apt-get update
   - apt-get install -y gh
-  # Configure bash aliases for ubuntu user
-  - |
-    cat > /home/ubuntu/.bash_aliases << 'EOF'
-    # Safety aliases
-    alias rm='rm -i'
-    alias cp='cp -i'
-    alias mv='mv -i'
 
-    # Navigation
-    alias ..='cd ..'
-    alias ...='cd ../..'
-    alias ....='cd ../../..'
-
-    # Listing
-    alias ll='ls -alF'
-    alias la='ls -A'
-    alias l='ls -CF'
-
-    # Convenience
-    alias cls='clear'
-    alias h='history'
-    alias grep='grep --color=auto'
-    alias df='df -h'
-    alias du='du -h'
-
-    # Claude
-    alias claude='claude --dangerously-skip-permissions'
-    alias claudec='claude --chrome'
-
-    EOF
-  - chown ubuntu:ubuntu /home/ubuntu/.bash_aliases
-  # Add OSC 7 escape sequence for terminal emulators (wezterm, kitty, etc.)
-  - |
-    cat >> /home/ubuntu/.bashrc << 'EOF'
-
-    # Emit OSC 7 escape sequence with hostname for terminal emulators
-    __osc7_cwd() {
-        printf '\033]7;file://%s%s\033\\' "$(hostname)" "$PWD"
-    }
-    PROMPT_COMMAND="__osc7_cwd${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
-    EOF
+  # Append bashrc additions (OSC 7 for terminal emulators)
+  - cat /home/ubuntu/.bashrc_additions >> /home/ubuntu/.bashrc
