@@ -18,6 +18,7 @@ packages:
   - build-essential
   - docker.io
   - docker-compose-v2
+  - dunst
 
 write_files:
   # Bash aliases and functions
@@ -96,6 +97,11 @@ write_files:
           printf '\033]7;file://%s%s\033\\' "$(hostname)" "$PWD"
       }
       PROMPT_COMMAND="__osc7_cwd${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+
+      # Start dunst notification daemon if not running (requires X11/DISPLAY)
+      if [ -n "$DISPLAY" ]; then
+          pgrep -x dunst > /dev/null || (dunst &)
+      fi
 
 runcmd:
   # Configure SSH for X11 forwarding
