@@ -164,6 +164,7 @@ groups = [
           #   label="",  # Linux
           label="󰅱",  # Code Icon
           #   matches=[Match(wm_class="org.wezfurlong.wezterm")],
+          matches=[Match(wm_class="cursor")],
           layout="monadtall",
           screen_affinity=1
           ),
@@ -177,9 +178,9 @@ groups = [
           #   label="󰀲",  # Android Icon
           label="󰅱",  # Code Icon
           matches=[
-              Match(wm_class="android_studio")
+          #Match(wm_class="android_studio")
           ],
-          layout="monadtall",
+          layout="monadthreecol",
           screen_affinity=1,
           ),
     Group("5",

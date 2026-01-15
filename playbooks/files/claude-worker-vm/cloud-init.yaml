@@ -4,7 +4,7 @@ users:
   - default
   - name: ubuntu
     sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
+    shell: /bin/zsh
     ssh_authorized_keys:
       - {{ ssh_public_key }}
 
@@ -19,6 +19,8 @@ packages:
   - docker.io
   - docker-compose-v2
   - dunst
+  - zsh
+  - fzf
 
 write_files:
   # Bash aliases and functions
@@ -42,11 +44,18 @@ write_files:
       alias l='ls -CF'
 
       # Convenience
-      alias cls='clear'
       alias h='history'
       alias grep='grep --color=auto'
       alias df='df -h'
       alias du='du -h'
+      alias chrome="google-chrome"
+
+      # Git worktree aliases
+      alias gwt='git worktree'
+      alias gwta='git worktree add'
+      alias gwtl='git worktree list'
+      alias gwtr='git worktree remove'
+      alias gwtp='git worktree prune'
 
       # Claude
       alias claude='claude --dangerously-skip-permissions'
@@ -54,6 +63,9 @@ write_files:
 
       # Copy
       alias copy='xclip -selection clipboard'
+
+      # Start dunst notification daemon if not running
+      pgrep -x dunst > /dev/null || (dunst &)
 
       # Find file and copy path to clipboard
       lsc() {
@@ -97,6 +109,22 @@ write_files:
           printf '\033]7;file://%s%s\033\\' "$(hostname)" "$PWD"
       }
       PROMPT_COMMAND="__osc7_cwd${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+
+      # Start dunst notification daemon if not running (requires X11/DISPLAY)
+      if [ -n "$DISPLAY" ]; then
+          pgrep -x dunst > /dev/null || (dunst &)
+      fi
+
+  # Zshrc additions (OSC 7 for terminal emulators)
+  - path: /home/ubuntu/.zshrc_additions
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    content: |
+      # Emit OSC 7 escape sequence with hostname for terminal emulators
+      __osc7_cwd() {
+          printf '\033]7;file://%s%s\033\\' "$(hostname)" "$PWD"
+      }
+      precmd_functions+=(__osc7_cwd)
 
       # Start dunst notification daemon if not running (requires X11/DISPLAY)
       if [ -n "$DISPLAY" ]; then
@@ -154,5 +182,17 @@ runcmd:
   - apt-get update
   - apt-get install -y gh
 
+  # Install dunst for notifications
+  - apt-get install dunst
+
   # Append bashrc additions (OSC 7 for terminal emulators)
   - cat /home/ubuntu/.bashrc_additions >> /home/ubuntu/.bashrc
+
+  # Install Oh My Zsh for ubuntu user
+  - sudo -u ubuntu sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.0/zsh-in-docker.sh)" -- -p git -p fzf -x
+
+  # Configure zsh
+  - echo 'source /usr/share/doc/fzf/examples/key-bindings.zsh' >> /home/ubuntu/.zshrc
+  - echo 'source /usr/share/doc/fzf/examples/completion.zsh' >> /home/ubuntu/.zshrc
+  - echo 'source ~/.bash_aliases' >> /home/ubuntu/.zshrc
+  - cat /home/ubuntu/.zshrc_additions >> /home/ubuntu/.zshrc
