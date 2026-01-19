@@ -194,7 +194,6 @@ runcmd:
 
   # Install dunst for notifications
   - apt-get install dunst
-
   # Append bashrc additions (OSC 7 for terminal emulators)
   - cat /home/ubuntu/.bashrc_additions >> /home/ubuntu/.bashrc
 
@@ -206,3 +205,4 @@ runcmd:
   - echo 'source /usr/share/doc/fzf/examples/completion.zsh' >> /home/ubuntu/.zshrc
   - echo 'source ~/.bash_aliases' >> /home/ubuntu/.zshrc
   - cat /home/ubuntu/.zshrc_additions >> /home/ubuntu/.zshrc
+  - echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
