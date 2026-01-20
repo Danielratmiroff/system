@@ -21,6 +21,10 @@ packages:
   - dunst
   - zsh
   - fzf
+  - tree
+  - xclip
+  # dunst for notifications
+  - dunst
 
 write_files:
   # Bash aliases and functions
@@ -158,6 +162,7 @@ runcmd:
   # Configure git
   - sudo -u ubuntu git config --global user.name "danielr"
   - sudo -u ubuntu git config --global user.email "danielratmiroff@gmail.com"
+  - sudo -u ubuntu git config --global core.editor "vim"
   - sudo -u ubuntu git config --global core.pager delta
   - sudo -u ubuntu git config --global interactive.diffFilter 'delta --color-only'
   - sudo -u ubuntu git config --global delta.navigate true
@@ -180,9 +185,6 @@ runcmd:
   # Add ubuntu user to docker group
   - usermod -aG docker ubuntu
 
-  # Install xclip
-  - apt-get install xclip
-
   # Install GitHub CLI (gh)
   - mkdir -p -m 755 /etc/apt/keyrings
   - wget -nv -O /tmp/githubcli-archive-keyring.gpg https://cli.github.com/packages/githubcli-archive-keyring.gpg
@@ -192,8 +194,6 @@ runcmd:
   - apt-get update
   - apt-get install -y gh
 
-  # Install dunst for notifications
-  - apt-get install dunst
   # Append bashrc additions (OSC 7 for terminal emulators)
   - cat /home/ubuntu/.bashrc_additions >> /home/ubuntu/.bashrc
 
