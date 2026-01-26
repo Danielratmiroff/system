@@ -41,6 +41,7 @@ write_files:
       alias ..='cd ..'
       alias ...='cd ../..'
       alias ....='cd ../../..'
+      alias j='jean'
 
       # Listing
       alias ll='ls -alF'
