@@ -27,6 +27,14 @@ packages:
   - dunst
 
 write_files:
+  # SSH config - auto-add keys to agent on first use
+  - path: /home/ubuntu/.ssh/config
+    owner: ubuntu:ubuntu
+    permissions: '0600'
+    content: |
+      Host *
+          AddKeysToAgent yes
+
   # Bash aliases and functions
   - path: /home/ubuntu/.bash_aliases
     owner: ubuntu:ubuntu
