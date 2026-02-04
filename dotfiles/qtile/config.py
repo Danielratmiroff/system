@@ -102,7 +102,7 @@ keys = [
     Key([mod], "b", lazy.spawn('brave-browser --new-window'), desc="Launch browser"),
     Key([mod], "a", lazy.spawn('rofi -show drun'), desc="Launch rofi drun"),
     Key([mod], "TAB", lazy.spawn('rofi -show window'), desc="Launch rofi window"),
-    Key([mod], "c", lazy.spawn('cursor'), desc="Launch cursor"),
+    Key([mod], "c", lazy.spawn('code'), desc="Launch code"),
     Key([mod], "Print", lazy.spawn(
         'Flameshot gui'), desc="Launch screenshot"),
     Key([mod, "control"], "l", lazy.spawn(
@@ -164,7 +164,7 @@ groups = [
           #   label="",  # Linux
           label="󰅱",  # Code Icon
           #   matches=[Match(wm_class="org.wezfurlong.wezterm")],
-          matches=[Match(wm_class="cursor")],
+          matches=[Match(wm_class="code")],
           layout="monadtall",
           screen_affinity=1
           ),
