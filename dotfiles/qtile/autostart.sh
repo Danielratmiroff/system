@@ -4,7 +4,7 @@ pulseaudio --start &
 slack &
 brave-browser &
 obsidian &
-code &
+cursor &
 wezterm &
 #zen-browser
 
