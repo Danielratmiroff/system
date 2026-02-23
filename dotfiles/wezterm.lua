@@ -254,6 +254,8 @@ config.keys = {
 		mods = "CTRL",
 		action = act.ActivateTabRelative(-1),
 	},
+  { key = 'UpArrow', mods = 'SHIFT', action = act.ScrollByLine(-1) },
+  { key = 'DownArrow', mods = 'SHIFT', action = act.ScrollByLine(1) },
 	{
 		key = "PageDown",
 		mods = "CTRL",
