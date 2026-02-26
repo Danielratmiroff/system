@@ -95,8 +95,6 @@ alias po='poetry'
 alias mp='multipass'
 
 # Kubernetes
-alias minik='minikube'
-alias kubectl='minikube kubectl --'
 alias k='kubectl'
 kubectl completion fish | source
 
