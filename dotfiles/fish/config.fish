@@ -96,6 +96,14 @@ alias mp='multipass'
 
 # Kubernetes
 alias k='kubectl'
+alias kgp='kubectl get pods'
+alias kl='kubectl logs -f'
+
+alias tms="kubectl exec -it $(kubectl get pods | grep tms | awk '{print $1}' | head -1) -- /bin/bash"
+alias ums="kubectl exec -it $(kubectl get pods | grep ums | awk '{print $1}' | head -1) -- /bin/bash"
+alias ims="kubectl exec -it $(kubectl get pods | grep ims | awk '{print $1}' | head -1) -- /bin/bash"
+alias core="kubectl exec -it $(kubectl get pods | grep webserver | awk '{print $1}' | head -1) -- /bin/bash"
+alias fe="kubectl exec -it $(kubectl get pods | grep web | awk '{print $1}' | head -1) -- /bin/bash"
 kubectl completion fish | source
 
 # Git
