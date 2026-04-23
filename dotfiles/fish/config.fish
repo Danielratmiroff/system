@@ -100,12 +100,12 @@ alias kgp='kubectl get pods'
 alias kl='kubectl logs -f'
 alias kcontext="kubectl config use-context $1"
 
-alias tms="kubectl exec -it $(kubectl get pods | grep tms | awk '{print $1}' | head -1) -- /bin/bash"
-alias ums="kubectl exec -it $(kubectl get pods | grep ums | awk '{print $1}' | head -1) -- /bin/bash"
-alias ims="kubectl exec -it $(kubectl get pods | grep keycloak | awk '{print $1}' | head -1) -- /bin/bash"
-alias core="kubectl exec -it $(kubectl get pods | grep webserver | awk '{print $1}' | head -1) -- /bin/bash"
-alias fe="kubectl exec -it $(kubectl get pods | grep web | awk '{print $1}' | head -1) -- /bin/bash"
-kubectl completion fish | source
+function tms; kubectl exec -it (kubectl get pods | grep tms | awk '{print $1}' | head -1) -- /bin/bash; end
+function ums; kubectl exec -it (kubectl get pods | grep ums | awk '{print $1}' | head -1) -- /bin/bash; end
+function ims; kubectl exec -it (kubectl get pods | grep keycloak | awk '{print $1}' | head -1) -- /bin/bash; end
+function core; kubectl exec -it (kubectl get pods | grep webserver | awk '{print $1}' | head -1) -- /bin/bash; end
+function fe; kubectl exec -it (kubectl get pods | grep web | awk '{print $1}' | head -1) -- /bin/bash; end
+#kubectl completion fish | source
 
 # Git
 alias g='git'
